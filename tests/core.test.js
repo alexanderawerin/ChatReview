@@ -206,3 +206,30 @@ test('reaction-only readers participate in reaction awards without inflating mes
   assert.equal(stats.totalParticipants, 1);
   assert.equal(buildSlides(stats).find((slide) => slide.id === 'reactionsGiven').name, 'Читатель');
 });
+
+test('mood selects distinct composition while preserving award facts', () => {
+  const stats = analyzeChat(demoChat());
+  const versions = ['summary', 'friendly', 'sharp'].map((tone) =>
+    buildSlides(stats, { tone }).find((s) => s.id === 'maxStreak'),
+  );
+  assert.equal(new Set(versions.map((s) => s.value)).size, 1);
+  assert.equal(new Set(versions.map((s) => s.name)).size, 1);
+  const rendered = versions.map((s) => renderSlide(s));
+  assert.ok(!rendered[0].includes('mood-emoji'));
+  assert.ok(rendered[1].includes('mood-emoji'));
+  assert.ok(rendered[2].includes('roast-evidence'));
+  assert.ok(rendered[2].indexOf('story-caption') < rendered[2].indexOf('award-body'));
+});
+test('photo slide contains only full-image surface and escaped author credit', () => {
+  const html = renderSlide({
+    kind: 'photo',
+    title: 'Photo',
+    name: '<Author>',
+    image: 'blob:test',
+    caption: '26 reactions',
+  });
+  assert.ok(html.includes('&lt;Author&gt;'));
+  assert.ok(!html.includes('story-header'));
+  assert.ok(!html.includes('story-caption'));
+  assert.ok(!html.includes('story-footer'));
+});

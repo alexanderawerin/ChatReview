@@ -1,4 +1,4 @@
-export const TONES = { summary: 'Итоги', friendly: 'Дружески', sharp: 'Пожёстче' };
+export const TONES = { summary: 'Спокойно', friendly: 'Дружески', sharp: 'Пожёстче' };
 export const escapeHtml = (value) =>
   String(value ?? '').replace(
     /[&<>"']/g,
@@ -228,7 +228,7 @@ export function buildSlides(
     const winner = people[0];
     slides.push({
       id: key,
-      kind: key === 'maxStreak' ? 'mascot' : 'award',
+      kind: 'award',
       title: titles[index],
       name: winner.name,
       value: winner[key],
@@ -374,14 +374,87 @@ export function buildSlides(
         });
     }
   }
-  return slides;
+  return slides.map((slide, position) => ({
+    ...slide,
+    tone: ['summary', 'friendly', 'sharp'][index],
+    palette: position % 4,
+  }));
 }
+
+const moodEmoji = {
+  maxStreak: '🎙️',
+  messages: '💬',
+  replies: '🗣️',
+  reactionsGiven: '🫶',
+  reactionsReceived: '🌟',
+  night: '🦉',
+  morning: '☀️',
+  gratitudeGiven: '💌',
+  gratitudeReceived: '🥹',
+  stickers: '🎭',
+  voice: '🎧',
+  caps: '📣',
+  questions: '🤔',
+  links: '🔗',
+  forwards: '📨',
+  edits: '✍️',
+  selfReplies: '🪞',
+  silenceBreaks: '👀',
+  short: '🤏',
+  emojis: '😂',
+  averageLength: '📚',
+  overview: '🎉',
+  reactions: '😍',
+  hours: '⏰',
+  days: '📅',
+  longest: '📜',
+  mostReacted: '🏆',
+  words: '💭',
+  media: '🎬',
+};
 
 export function renderSlide(
   slide,
   { mascotUrl = '', chatName = 'chatreview', number = 1, total = 1 } = {},
 ) {
   const e = escapeHtml;
+  const tone = ['friendly', 'sharp'].includes(slide.tone) ? slide.tone : 'summary';
+  const emoji = moodEmoji[slide.id] || (tone === 'sharp' ? '🔥' : '✨');
+  const support = [
+    'reactionsGiven',
+    'reactionsReceived',
+    'gratitudeGiven',
+    'gratitudeReceived',
+    'overview',
+  ];
+  const voice = [
+    'maxStreak',
+    'messages',
+    'replies',
+    'voice',
+    'caps',
+    'questions',
+    'selfReplies',
+    'averageLength',
+  ];
+  const quiet = ['night', 'morning', 'conversationEnds', 'silenceBreaks', 'short'];
+  const dense = ['ranking', 'words', 'chart', 'quote'].includes(slide.kind);
+  const scene =
+    tone === 'summary' || dense
+      ? 'plain'
+      : tone === 'friendly'
+        ? support.includes(slide.id)
+          ? 'party'
+          : voice.includes(slide.id)
+            ? 'studio'
+            : 'plain'
+        : voice.includes(slide.id)
+          ? 'fire'
+          : quiet.includes(slide.id)
+            ? 'plain'
+            : 'poster';
+  if (slide.kind === 'photo')
+    return `<article class="story story-photo" aria-label="${e(slide.title)}"><img class="photo" src="${e(slide.image)}" alt="${e(slide.title)}"><div class="photo-credit">${e(slide.name)}</div></article>`;
   const numberSize = Math.min(
     slide.kind === 'mascot' ? 27 : slide.kind === 'overview' ? 15 : 17,
     82 / Math.max(1, formatNumber(slide.value ?? 0).length),
@@ -403,5 +476,15 @@ export function renderSlide(
     content = `<ul class="slide-ranking ${slide.kind}">${rows}</ul>`;
   else
     content = `<div class="award-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number" style="font-size:${numberSize}cqw">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p></div>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
-  return `<article class="story story-${e(slide.kind)}" aria-label="${e(slide.title)}"><header class="story-header">${e(slide.title)}</header>${content}<p class="story-caption">${e(slide.caption)}</p><footer class="story-footer"><span>${e(chatName)}</span><span>${number} / ${total}</span></footer></article>`;
+  const mood =
+    tone === 'summary'
+      ? ''
+      : `<div class="mood-emoji" aria-hidden="true">${tone === 'sharp' ? '😈' : emoji}</div>`;
+  const title = `<header class="story-header">${e(slide.title)}</header>`;
+  const caption = `<p class="story-caption">${e(slide.caption)}</p>`;
+  const body =
+    tone === 'sharp'
+      ? `${title}${caption}<div class="roast-evidence">${content}</div>${mood}`
+      : `${title}${content}${mood}${caption}`;
+  return `<article class="story story-${e(slide.kind)} tone-${tone} scene-${scene} palette-${Number(slide.palette) % 4 || 0}" aria-label="${e(slide.title)}">${body}<footer class="story-footer"><span>${e(chatName)}</span><span>${number} / ${total}</span></footer></article>`;
 }

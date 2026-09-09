@@ -1,45 +1,46 @@
-# ChatReview: design and functional QA
+# Landing design QA
 
 final result: passed
 
-## Visual truth and capture
+Source: /Users/alexanderawerin/.codex/generated_images/01a08462-52c0-74a1-99a9-a65cc2e287c0/exec-780c031b-fb18-4298-84a8-9da36f68d44f.png (1505×1045).
+Implementation: design/landing-approved-desktop.png, desktop viewport 1241×870. Both images opened together for full-view comparison; proportions compared across different viewport dimensions, not claimed pixel-identical. Focused comparison unnecessary for this sparse layout.
 
-- Selected source: `design/concept.png`, 1422 × 1106, the user's option 2.
-- Implementation: `http://127.0.0.1:5173/`, `design/implementation-desktop.png`.
-- State: landing, friendly tone, photos off, first example card (Sasha, 17 consecutive messages).
-- Final combined comparison: `design/comparison.jpg`, source and implementation together, 2844 × 1106.
-- Focused card comparison: `design/comparison-card.jpg`. It shows the text hierarchy, generated cat asset, number, caption and navigation at a readable scale.
-- CSS viewport: 1422 × 1105 (target height 1106). The in-app browser reports devicePixelRatio 0.9. Its screenshot backend returned a 1580 × 1228 canvas with the rendered viewport occupying the upper-left 790 × 614 area. Cropping that unused canvas area and resizing to 1422 × 1106 normalizes geometry. It introduces visible softness; this is a screenshot limitation, not source asset or font quality. Browser DOM measurements verified the 886px content column and 396px sidebar without horizontal overflow.
-- Responsive evidence: `design/implementation-mobile.png`, `design/implementation-mobile-results.png`, CSS width 393 and viewport height 852. A 1024px tablet layout was also captured and inspected. No horizontal overflow at either width.
+Preserved centered typography, neutral dark background, lime upload, secondary settings, quiet preview utilities, three instruction columns and copyright. First capture clipped copyright; reduced short-desktop vertical spacing and captured again, with all content visible. No remaining P0/P1/P2 findings in this scoped landing review. Font weight and spacing remain minor P3 differences.
 
-## Comparison history
+Browser checked settings dialog open/close, instruction disclosure, preview counter and generated link. Responsive 390×844 capture: design/landing-approved-mobile.png; browser capture includes unused outer framebuffer area, judged the rendered content only. Mobile steps stack and footer follows by scrolling. File uploads intentionally not tested per user request. Existing 12 tests, lint and build passed.
 
-1. First comparison: blocked. The cat was tinted and had a visible rectangular edge because of multiply blending; the caption crowded the unit below the number. Removed the blend and resolved the asset framing and vertical spacing.
-2. Second comparison: blocked. Display type was too narrow and the example started below its target position. Adjusted display weight, size, tracking, intro spacing and sidebar proportions. Reduced the cat's crop so both ears and the paw remain visible.
-3. Final full-view and focused comparisons: no actionable P0/P1/P2 visual issues. Improved radio border visibility, preserved the source's large two-line headline, left poster/right settings composition, dark ground and vermilion accent. Intermediate tablet layout changes before the narrow sidebar becomes cramped.
+Slide artwork is explicitly unapproved: preview remains neutral, and its new-window destination explains that slide design is in progress. Carousel changes the selected placeholder index only. Replace these placeholders with approved slide images in the next design phase.
 
-## Required fidelity surfaces
+## Annotation pass: light palette and upload dialog
 
-- **Fonts and typography:** locally bundled Inter Variable for the display and UI, Caveat for the note on the poster. Heavy two-line title, compact supporting text, dominant numeral and clear settings hierarchy match the selected direction. Long participant names are contained; full names remain in accessible text and the title attribute. Large values reduce their type size to fit.
-- **Spacing and layout:** source-aligned desktop margins and major columns, 16:9 poster, vertical settings divider, footer divider and steps. Mobile stacks the settings below the preview and keeps result controls reachable. The selected source did not define mobile or results screens; those use the same tokens and slide renderer.
-- **Colors and tokens:** `#111213`, `#ff553b`, near-white and muted gray. Orange is a flat color rather than the generated source's subtle texture. Black text on the primary orange button is an intentional contrast improvement. Screenshots have capture-related color/antialiasing differences; exported PNGs use the intended RGB values.
-- **Images:** a separate generated gray cat with black sunglasses is used as a real raster asset. Its exact pose differs from the mock; subject, palette and composition are preserved. No screenshot is used as a substitute for live UI. Photo stories preserve aspect ratio in the browser and in saved PNGs.
-- **Copy/content:** source headline and example nomination retained. Export instructions now describe the chat menu in Telegram Desktop. “Без церемоний” replaces the mock's “без цензуры” to avoid implying unlimited AI-generated content. Small folder/privacy controls provide actual importer behavior. Footer copy is condensed; the GitHub link remains functional.
-- **Icons and interaction:** Phosphor library SVG assets, native semantic radios/switch/select/dialog, keyboard focus and reduced-motion rules. Gallery arrows, demo, settings, instructions, file input, folder input, results navigation and export actions are connected.
+Implemented the user's 13 annotations: title emojis, separated pagination/open-preview, window icon, smaller step numbers, question-only instruction affordance with hover/focus tooltip, official Telegram Desktop link, web-viewing copy, rounded modal with 16px close offsets, and file selection inside the upload dialog. Light ivory/graphite/blue is a provisional palette pending preference feedback.
 
-## Functional evidence
+Browser verified desktop landing, upload-button-to-modal transition, close action, photo toggle and corresponding file/folder label. No file picker or upload was triggered. Tooltip CSS is implemented for hover/focus; this browser locator API did not support hover, so that interaction remains a manual check. Tests12, lint and build pass. Earlier screenshots reflect the previous palette; current browser captures are in the task.
 
-- `npm test`: 12 tests passed against the actual analyzer, importer and slide functions, including all six tone/photo combinations, stable identities, malformed input, unsafe paths, escaping and a production demo-asset regression.
-- ESLint, Prettier check and Vite production build passed.
-- Browser: demo, six settings combinations (27 slides without photos, 29 with photos), JSON error, folder import including local photo, keyboard navigation, instructions dialog, desktop/tablet/mobile states. No console errors in the final app checks.
-- Initial real PNG exposed html2canvas's lack of object-fit support. Export now resolves the decoded image into explicit aspect-preserving geometry before rasterization.
-- `tests/export-browser.html` generated six real ZIP blobs, opened every archive with JSZip, decoded all 168 PNGs and checked 1280 × 720 dimensions. A square test photo's colored bounds were checked in the actual PNG pixels to catch stretching. All six scenarios passed.
-- One browser-generated ZIP was retrieved through the test page's artifact link and independently opened with Python zipfile/Pillow: CRC validation passed, 29 PNG files, all 1280 × 720. All slides were inspected on a contact sheet. Local evidence: `test-results/chatreview-verified.zip` and `test-results/export-contact.png` (ignored by Git).
-- The in-app browser saved the first PNG normally but subsequent native downloads could not be reliably observed. Access to Codex's native window was refused by the computer-use tool even after user permission. The app retains an explicit download link after generation. The archive/image contents were verified independently through the browser test page; repeated OS save dialogs remain a manual check.
+## Typography consolidation
 
-## Accepted differences and residual checks
+Latest annotation pass verified in browser: landing and open mood dialog use exactly 14px, 16px and 24px computed font sizes outside the hero headline. Centered wordmark; removed redundant settings action and headline period; tightened question-icon gap; shortened photo copy; reduced modal vertical padding; first calm mood selected by default. Desktop captures inspected at 1241×870, with copyright and full dialog visible. Lint and production build passed. No upload performed.
 
-- P3: generated cat pose, source handwriting/arrow details and simplified footer differ slightly from the mock. They do not change the hierarchy or core visual direction.
-- Physical iPhone/Safari, very large real exports, native repeated-download behavior and touch gestures on actual hardware remain manual checks. No real private chat was used during development.
-- A large JSON is currently analyzed on the main thread. The README documents the size limit and Web Worker upgrade path.
-- This is a local implementation and public source repository, not a deployed production website. Visual QA does not imply user acceptance of the design.
+## Full-viewport result pass
+
+Implemented full-viewport result surface with a 64px secondary utility rail (104px on narrow screens), suppressed repeated import preferences/chat heading, and removed the repeated mascot slide variant from generated decks. Existing slide facts and typography retained; export sizing is unchanged because viewer overrides are scoped to #results. Lint, all 12 tests, and build passed.
+
+Result visual verification is pending: source updates reset the user's in-memory import to the landing. No file was reloaded, respecting the user's upload-testing boundary. User will check the other tones with their own import.
+
+## Distinct moods and full-frame photos
+
+Compared original ChatRoasted/js/slides.js and ChatWrapped (base)/js/slides.js to recover emoji-led mood cues. Implemented separate friendly award/ranking treatment and roast punchline-before-evidence composition, preserving facts and calm layout. Rendered a six-slide contact sheet from bundled synthetic demo data in test-results/moods.html and inspected it in browser (no import/upload). Friendly and roast differ in hierarchy, palettes and emoji treatment. Photo markup is image plus small bottom-center author; cover crop is resolved explicitly for html2canvas as well as browser CSS. 14 unit tests pass including mood/fact invariants and photo markup. Browser PNG export harness updated for full-frame photo coverage; its full export matrix has not been rerun in this pass. User-data review remains pending.
+
+## Semantic background scenes
+
+Added generated local night, celebration, and torn-poster artwork under assets/mood-*.png. Night facts and reaction/celebration facts receive corresponding friendly scenes; loud/monologue roast facts use embers, other roast facts use a torn poster. Calm and full-image photo slides do not receive these backgrounds. Friendly captions use sans-serif and award emoji follows the fact. Synthetic four-scene browser comparison: test-results/scenes.html. First inspection found poster text over dark torn margins and celebration caption near confetti; increased poster inner inset and lifted the caption. Tests14/lint/build passed before these final spacing-only adjustments. PNG export matrix remains pending.
+
+## Landing scene carousel
+
+Applied annotation changes: headline lines offset -40/+40px on desktop (16px on narrow screens), positive description, four existing artwork backgrounds, synchronized emoji pairs and counter, matching scene in the separate preview destination. Browser inspected all four backgrounds and wraparound at 1241×870. Added solid fallback colors to prevent unreadable text while dark images load. Lint/build passed.
+
+## Content-led scenes and final export verification
+
+Replaced the literal night motif with studio artwork for participation and conversation facts. Reaction and gratitude facts use celebration; friendly participation uses studio and roast participation uses embers. Quiet/time facts and dense rankings, words, charts and quotes remain plain. Other roast awards use the poster. The full mapping and rationale are recorded in design/slide-art-direction.md. Landing carousel now uses celebration, studio, poster and embers. Earlier entries and screenshots document superseded iterations.
+
+Final synthetic browser export matrix passed all six mood/photo combinations: 168 PNG files decoded at 1280 × 720, with full-frame photo coverage checked. No personal file import was performed. All 14 unit tests, lint, formatting and production build passed. Physical iPhone/Safari and the user's own chat review remain unverified.

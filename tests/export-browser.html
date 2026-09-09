@@ -108,9 +108,9 @@
                     }
                   }
                 const ratio = (right - left + 1) / (bottom - top + 1);
-                if (Math.abs(ratio - 1) > 0.02)
+                if (Math.abs(ratio - 1280 / 720) > 0.02)
                   throw Error(
-                    `Photo distorted: orange bounds ${right - left + 1} × ${bottom - top + 1}`,
+                    `Photo does not cover the slide: orange bounds ${right - left + 1} × ${bottom - top + 1}`,
                   );
               }
               if (
@@ -128,7 +128,7 @@
               } else URL.revokeObjectURL(image.src);
             }
             proof.push(
-              `${tone}, photos ${photos}: ${files.length} PNG 1280×720, ZIP ${result.blob.size} bytes, photo proportions passed`,
+              `${tone}, photos ${photos}: ${files.length} PNG 1280×720, ZIP ${result.blob.size} bytes, photo full-frame coverage passed`,
             );
           }
         output.textContent = 'PASSED — 6 combinations\n' + proof.join('\n');

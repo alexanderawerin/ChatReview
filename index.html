@@ -15,38 +15,97 @@
       <header class="site-header">
         <a class="wordmark" href="./" aria-label="ChatReview — на главную"
           >chat<span>review</span></a
-        ><button class="text-button" id="how-button">
-          Как это работает <span data-icon="arrow"></span>
-        </button>
+        >
       </header>
       <main id="landing" class="landing">
         <section class="hero">
-          <h1>Ваш чат.<br />Без прикрас.</h1>
-          <p class="intro">Все главные герои, привычки и моменты — в одном разборе.</p>
-          <button class="demo-link" id="demo-button">
-            Посмотреть пример <span data-icon="arrow"></span>
+          <h1>
+            <span class="headline-line"
+              ><span class="headline-emoji" aria-hidden="true">🥱</span> Скучный чат</span
+            ><br /><span class="headline-line"
+              >Прикольные факты <span class="headline-emoji" aria-hidden="true">😂</span></span
+            >
+          </h1>
+          <p class="intro">
+            Откройте забавные привычки, любимые реакции<br class="desktop-break" />
+            и неожиданные таланты вашего чата.
+          </p>
+          <div class="landing-actions">
+            <button class="primary upload-button" id="upload-button">
+              <span data-icon="upload"></span>Загрузить чат
+            </button>
+          </div>
+          <p class="privacy-note">Всё обрабатывается на вашем устройстве.</p>
+        </section>
+        <nav class="landing-preview" aria-label="Превью слайдов">
+          <button id="preview-prev" aria-label="Предыдущий пример" class="icon-button">
+            <span data-icon="left"></span>
           </button>
-          <div class="preview-wrap">
-            <div id="preview"></div>
-            <nav class="preview-nav" aria-label="Примеры слайдов">
-              <button id="preview-prev" aria-label="Предыдущий пример" class="icon-button">
-                <span data-icon="left"></span></button
-              ><button id="preview-next" aria-label="Следующий пример" class="icon-button">
-                <span data-icon="right"></span>
-              </button>
-            </nav>
+          <output id="preview-count" aria-live="polite">1 / 3</output>
+          <button id="preview-next" aria-label="Следующий пример" class="icon-button">
+            <span data-icon="right"></span>
+          </button>
+          <a id="open-preview" href="?preview=1" target="_blank" rel="noopener"
+            >Открыть превью <span data-icon="external"></span
+          ></a>
+        </nav>
+        <section class="site-footer" aria-label="Три шага к разбору">
+          <div>
+            <span class="step-number">01</span>
+            <details class="export-help">
+              <summary>
+                Экспортируйте чат
+                <span
+                  class="help-tip"
+                  tabindex="0"
+                  aria-label="Как экспортировать чат"
+                  aria-describedby="export-tooltip"
+                  ><span data-icon="help"></span
+                  ><span class="tooltip" id="export-tooltip" role="tooltip"
+                    >В меню чата Telegram Desktop выберите «Экспорт истории чата», затем JSON.</span
+                  ></span
+                >
+              </summary>
+              <ol>
+                <li>Откройте чат в Telegram Desktop на компьютере.</li>
+                <li>В меню чата выберите «Экспорт истории чата».</li>
+                <li>Выберите JSON и сохраните экспорт.</li>
+              </ol>
+            </details>
+            <p>
+              <a href="https://desktop.telegram.org/" target="_blank" rel="noopener noreferrer"
+                >Telegram Desktop</a
+              >
+              · формат JSON
+            </p>
+          </div>
+          <div>
+            <span class="step-number">02</span>
+            <h2>Загрузите result.json</h2>
+            <p>Файл из папки экспорта</p>
+          </div>
+          <div>
+            <span class="step-number">03</span>
+            <h2>Сохраните слайды</h2>
+            <p>В PNG или ZIP, а ещё — просмотр как сайта</p>
           </div>
         </section>
-        <aside class="settings" aria-label="Настройки разбора">
-          <h2>Как подать ваш чат</h2>
+        <footer class="copyright">© 2026 Alexander Awerin</footer>
+      </main>
+      <dialog id="settings-dialog" class="settings-modal">
+        <button class="icon-button close-settings" aria-label="Закрыть настройки">
+          <span data-icon="close"></span>
+        </button>
+        <h2>Выбери настроение</h2>
+        <div class="settings">
           <fieldset class="tone-options">
             <legend class="sr-only">Тон разбора</legend>
             <label
-              ><input type="radio" name="tone" value="summary" /><span
-                ><strong>Итоги</strong><small>Спокойный разбор без оценок.</small></span
+              ><input type="radio" name="tone" value="summary" checked /><span
+                ><strong>Спокойно</strong><small>Спокойный разбор без оценок.</small></span
               ></label
             ><label
-              ><input type="radio" name="tone" value="friendly" checked /><span
+              ><input type="radio" name="tone" value="friendly" /><span
                 ><strong>Дружески</strong><small>С лёгкой иронией, но без негатива.</small></span
               ></label
             ><label
@@ -63,29 +122,28 @@
                 aria-hidden="true"
               ></span
             ></label>
-            <p>Включите, чтобы добавить фото<br />из чата в разбор.</p>
+            <p>Добавить фотографии из чата.</p>
           </div>
-          <button class="primary upload-button" id="upload-button">
-            Загрузить чат <span data-icon="upload"></span>
+          <button class="primary choose-file" id="folder-button">
+            <span data-icon="upload"></span><span id="file-choice-label">Выбрать файл</span>
           </button>
-          <p class="upload-hint">JSON или папка экспорта</p>
-          <button class="folder-link" id="folder-button">Выбрать папку</button>
-          <p class="privacy-note">Всё обрабатывается на вашем устройстве.</p>
-        </aside>
-      </main>
+          <p class="file-choice-note">
+            JSON из экспорта Telegram. С фотографиями — папка экспорта.
+          </p>
+        </div>
+      </dialog>
       <section id="results" hidden aria-label="Разбор чата">
         <div class="results-top">
           <button class="text-button" id="back-button">
             <span data-icon="left"></span> Другой чат
           </button>
           <p id="chat-title"></p>
-          <span id="demo-badge" hidden>Пример · вымышленные данные</span>
         </div>
         <div class="result-controls">
           <label
             >Подача
             <select id="result-tone">
-              <option value="summary">Итоги</option>
+              <option value="summary">Спокойно</option>
               <option value="friendly">Дружески</option>
               <option value="sharp">Пожёстче</option>
             </select></label
@@ -120,27 +178,6 @@
       <p id="status" class="status" role="status" hidden></p>
       <a id="download-result" class="download-result" hidden>Скачать файл</a>
       <p id="error" class="error" role="alert" hidden></p>
-      <footer class="site-footer">
-        <div>
-          <span class="step-number">1</span>
-          <p>Экспортируйте чат<span>В Telegram Desktop → JSON</span></p>
-        </div>
-        <div>
-          <span class="step-number">2</span>
-          <p>Загрузите файл<span>Всё остаётся в вашем браузере</span></p>
-        </div>
-        <div>
-          <span class="step-number">3</span>
-          <p>Заберите слайды<span>Поделитесь с теми, кто в теме</span></p>
-        </div>
-        <a
-          href="https://github.com/alexanderawerin/ChatReview"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Исходный код на GitHub"
-          ><span data-icon="github"></span
-        ></a>
-      </footer>
     </div>
     <input type="file" id="file-input" accept=".json,application/json" hidden /><input
       type="file"
@@ -156,7 +193,10 @@
       <h2>Из Telegram —<br />в историю вашего чата.</h2>
       <ol>
         <li>Откройте нужный чат в <strong>Telegram Desktop</strong> на компьютере.</li>
-        <li>В меню чата выберите <strong>«Экспорт истории чата»</strong>.</li>
+        <li>
+          Нажмите три точки в правом верхнем углу чата и выберите
+          <strong>«Экспорт истории чата»</strong>.
+        </li>
         <li>
           Выберите формат <strong>JSON</strong> и нужный период. Для слайдов с фото включите экспорт
           фотографий.

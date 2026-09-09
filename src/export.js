@@ -32,19 +32,17 @@ export async function exportSlides(
         [...host.querySelectorAll('img')].map(async (image) => {
           try {
             await image.decode();
-            // html2canvas does not implement object-fit; resolve contain into explicit geometry.
+            // html2canvas does not implement object-fit; resolve cover/contain geometry.
             const box = image.getBoundingClientRect();
             const parent = host.firstElementChild.getBoundingClientRect();
-            const scale = Math.min(
-              box.width / image.naturalWidth,
-              box.height / image.naturalHeight,
-            );
+            const fit = getComputedStyle(image).objectFit === 'cover' ? Math.max : Math.min;
+            const scale = fit(box.width / image.naturalWidth, box.height / image.naturalHeight);
             const width = image.naturalWidth * scale;
             const height = image.naturalHeight * scale;
             Object.assign(image.style, {
               width: `${width}px`,
               height: `${height}px`,
-              left: `${box.left - parent.left + (image.classList.contains('photo') ? 0 : (box.width - width) / 2)}px`,
+              left: `${box.left - parent.left + (box.width - width) / 2}px`,
               top: `${box.top - parent.top + (box.height - height) / 2}px`,
               right: 'auto',
               bottom: 'auto',

@@ -8,20 +8,30 @@ import upload from '@phosphor-icons/core/assets/regular/upload-simple.svg?raw';
 import download from '@phosphor-icons/core/assets/regular/download-simple.svg?raw';
 import plus from '@phosphor-icons/core/assets/regular/plus.svg?raw';
 import close from '@phosphor-icons/core/assets/regular/x.svg?raw';
-import github from '@phosphor-icons/core/assets/fill/github-logo-fill.svg?raw';
 import { analyzeChat } from './analyzer.js';
 import { readExport, loadPhotoUrls, releasePhotoUrls, droppedFiles } from './importer.js';
 import { buildSlides, renderSlide } from './slides.js';
-import { demoChat } from './demo.js';
+import external from '@phosphor-icons/core/assets/regular/browsers.svg?raw';
+import help from '@phosphor-icons/core/assets/regular/question.svg?raw';
 
 const $ = (selector) => document.querySelector(selector);
-const icons = { arrow, left, right: arrow, upload, download, plus, close, github };
+const icons = {
+  arrow,
+  left,
+  right: arrow,
+  upload,
+  download,
+  plus,
+  close,
+  external,
+  help,
+};
 for (const element of document.querySelectorAll('[data-icon]')) {
   element.innerHTML = icons[element.dataset.icon];
   element.setAttribute('aria-hidden', 'true');
 }
 const state = {
-  tone: 'friendly',
+  tone: 'summary',
   photos: false,
   stats: null,
   files: [],
@@ -34,7 +44,7 @@ const state = {
   busy: false,
   downloadUrl: null,
 };
-const exampleStats = analyzeChat(demoChat());
+
 function message(id, text = '') {
   $(id).textContent = text;
   $(id).hidden = !text;
@@ -58,16 +68,23 @@ function syncControls() {
   $(`input[name="tone"][value="${state.tone}"]`).checked = true;
   $('#result-tone').value = state.tone;
   $('#photos-toggle').checked = $('#result-photos').checked = state.photos;
+  $('#file-choice-label').textContent = state.photos ? 'Выбрать папку с фото' : 'Выбрать файл';
 }
+const heroScenes = [
+  { name: 'party', emojis: ['🥱', '😂'] },
+  { name: 'studio', emojis: ['😶', '🤩'] },
+  { name: 'poster', emojis: ['😐', '🤪'] },
+  { name: 'fire', emojis: ['🙄', '😈'] },
+];
 function renderPreview() {
-  const previews = buildSlides(exampleStats, { tone: state.tone }).slice(0, 4);
-  state.previewIndex = (state.previewIndex + previews.length) % previews.length;
-  $('#preview').innerHTML = renderSlide(previews[state.previewIndex], {
-    mascotUrl,
-    chatName: 'chatreview',
-    number: state.previewIndex + 1,
-    total: previews.length,
+  state.previewIndex = (state.previewIndex + heroScenes.length) % heroScenes.length;
+  const scene = heroScenes[state.previewIndex];
+  $('.hero').dataset.scene = scene.name;
+  document.querySelectorAll('.headline-emoji').forEach((element, index) => {
+    element.textContent = scene.emojis[index];
   });
+  $('#preview-count').textContent = `${state.previewIndex + 1} / ${heroScenes.length}`;
+  $('#open-preview').href = `?preview=${state.previewIndex + 1}`;
 }
 function renderCurrent() {
   $('#slide-view').innerHTML = renderSlide(state.slides[state.index], {
@@ -111,11 +128,11 @@ function clearDownload() {
   $('#download-result').removeAttribute('href');
 }
 function showResults() {
+  $('#settings-dialog').close();
   clearDownload();
   $('#landing').hidden = true;
   $('#results').hidden = false;
   $('#chat-title').textContent = state.stats.chatName;
-  $('#demo-badge').hidden = !state.demo;
   syncControls();
   rebuild();
   $('#slide-view').focus({ preventScroll: true });
@@ -152,20 +169,6 @@ async function importFiles(files) {
     $('#folder-input').value = '';
   }
 }
-$('#demo-button').addEventListener('click', () => {
-  releasePhotoUrls(state.urls);
-  Object.assign(state, {
-    stats: exampleStats,
-    demo: true,
-    files: [],
-    jsonFile: null,
-    urls: new Map([['photos/demo.jpg', mascotUrl]]),
-    index: 0,
-    slides: [],
-  });
-  message('#error');
-  showResults();
-});
 $('#back-button').addEventListener('click', () => {
   releasePhotoUrls(state.urls);
   Object.assign(state, { stats: null, files: [], jsonFile: null, slides: [], demo: false });
@@ -191,10 +194,10 @@ $('#result-tone').addEventListener('change', (event) => {
 });
 $('#photos-toggle').addEventListener('change', (event) => changePhotos(event.target.checked));
 $('#result-photos').addEventListener('change', (event) => changePhotos(event.target.checked));
-$('#upload-button').addEventListener('click', () =>
+$('#upload-button').addEventListener('click', () => $('#settings-dialog').showModal());
+$('#folder-button').addEventListener('click', () =>
   $(state.photos ? '#folder-input' : '#file-input').click(),
 );
-$('#folder-button').addEventListener('click', () => $('#folder-input').click());
 $('#add-photos').addEventListener('click', () => $('#folder-input').click());
 for (const id of ['#file-input', '#folder-input'])
   $(id).addEventListener('change', (event) => importFiles(event.target.files));
@@ -236,7 +239,8 @@ $('#slide-view').addEventListener(
   },
   { passive: true },
 );
-$('#how-button').addEventListener('click', () => $('#instructions').showModal());
+for (const button of document.querySelectorAll('.close-settings'))
+  button.addEventListener('click', () => $('#settings-dialog').close());
 for (const button of document.querySelectorAll('.close-dialog, .close-instructions'))
   button.addEventListener('click', () => $('#instructions').close());
 document.addEventListener('dragover', (event) => {
@@ -293,3 +297,10 @@ $('#save-png').addEventListener('click', () => save(false));
 $('#save-zip').addEventListener('click', () => save(true));
 // The browser releases object URLs on document disposal; retain them for back-forward cache.
 renderPreview();
+
+if (new URLSearchParams(location.search).has('preview')) {
+  const selected = Number(new URLSearchParams(location.search).get('preview'));
+  const scene = heroScenes[selected - 1] || heroScenes[0];
+  document.querySelector('.page-shell').innerHTML =
+    `<main class="hero scene-preview" data-scene="${scene.name}"><h1>${scene.emojis[1]}</h1><p class="intro">Настроение вашего чата</p><a href="./">На главную</a></main>`;
+}
