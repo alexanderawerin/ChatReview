@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ru">
+  <meta charset="utf-8" /><title>ChatReview — проверка экспорта</title
+  ><style>
+    body {
+      font: 16px Arial;
+      background: #111;
+      color: #eee;
+      margin: 24px;
+    }
+    .checks {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .checks img {
+      width: 100%;
+      height: auto;
+    }
+    button {
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    output {
+      display: block;
+      white-space: pre-wrap;
+      margin: 20px 0;
+    }</style
+  ><button id="run">Проверить шесть вариантов экспорта</button
+  ><output id="proof">Готов к проверке</output>
+  <div class="checks" id="images"></div>
+  <script type="module">
+    import '/node_modules/@fontsource-variable/inter/index.css';
+    import '/node_modules/@fontsource/caveat/700.css';
+    import '/src/styles.css';
+    import { analyzeChat } from '/src/analyzer.js';
+    import { demoChat } from '/src/demo.js';
+    import { buildSlides } from '/src/slides.js';
+    import { exportSlides } from '/src/export.js';
+    import mascotUrl from '/assets/roast-cat.png';
+    import JSZip from 'jszip';
+    const button = document.querySelector('#run');
+    const output = document.querySelector('#proof');
+    button.onclick = async () => {
+      button.disabled = true;
+      const proof = [];
+      try {
+        const stats = analyzeChat(demoChat());
+        for (const tone of ['summary', 'friendly', 'sharp'])
+          for (const photos of [false, true]) {
+            const slides = buildSlides(stats, {
+              tone,
+              photos,
+              photoUrls: new Map([['photos/demo.jpg', mascotUrl]]),
+              demoPhotoUrl: mascotUrl,
+            });
+            const result = await exportSlides(slides, {
+              mascotUrl,
+              chatName: stats.chatName,
+              zip: true,
+              onProgress: (n, total) =>
+                (output.textContent = `${tone} / photos ${photos}: ${n} / ${total}`),
+            });
+            if (tone === 'friendly' && photos) {
+              const artifact = document.createElement('a');
+              artifact.textContent = 'ZIP для локальной проверки';
+              artifact.download = 'verified-chatreview.zip';
+              artifact.href = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(result.blob);
+              });
+              document.body.append(artifact);
+            }
+            const archive = await JSZip.loadAsync(await result.blob.arrayBuffer());
+            const files = Object.keys(archive.files);
+            if (files.length !== slides.length) throw Error('ZIP file count mismatch');
+            for (const [index, filename] of files.entries()) {
+              const blob = await archive.file(filename).async('blob');
+              const image = new Image();
+              image.src = URL.createObjectURL(blob);
+              await image.decode();
+              if (image.naturalWidth !== 1280 || image.naturalHeight !== 720)
+                throw Error(`${filename}: wrong PNG dimensions`);
+              if (slides[index].kind === 'photo') {
+                const canvas = document.createElement('canvas');
+                canvas.width = 1280;
+                canvas.height = 720;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(image, 0, 0);
+                const pixels = ctx.getImageData(0, 0, 1280, 720).data;
+                let left = 1280,
+                  right = 0,
+                  top = 720,
+                  bottom = 0;
+                for (let y = 0; y < 720; y++)
+                  for (let x = 0; x < 1280; x++) {
+                    const p = (y * 1280 + x) * 4;
+                    if (
+                      Math.abs(pixels[p] - 255) < 3 &&
+                      Math.abs(pixels[p + 1] - 85) < 3 &&
+                      Math.abs(pixels[p + 2] - 59) < 3
+                    ) {
+                      left = Math.min(left, x);
+                      right = Math.max(right, x);
+                      top = Math.min(top, y);
+                      bottom = Math.max(bottom, y);
+                    }
+                  }
+                const ratio = (right - left + 1) / (bottom - top + 1);
+                if (Math.abs(ratio - 1) > 0.02)
+                  throw Error(
+                    `Photo distorted: orange bounds ${right - left + 1} × ${bottom - top + 1}`,
+                  );
+              }
+              if (
+                tone === 'friendly' &&
+                photos &&
+                ['maxStreak', 'overview', 'words', 'hours', 'weekdays', 'photo-0'].includes(
+                  slides[index].id,
+                )
+              ) {
+                const figure = document.createElement('figure');
+                const caption = document.createElement('figcaption');
+                caption.textContent = slides[index].title;
+                figure.append(image, caption);
+                document.querySelector('#images').append(figure);
+              } else URL.revokeObjectURL(image.src);
+            }
+            proof.push(
+              `${tone}, photos ${photos}: ${files.length} PNG 1280×720, ZIP ${result.blob.size} bytes, photo proportions passed`,
+            );
+          }
+        output.textContent = 'PASSED — 6 combinations\n' + proof.join('\n');
+      } catch (error) {
+        output.textContent = 'FAILED: ' + error.message;
+        console.error(error);
+      } finally {
+        button.disabled = false;
+      }
+    };
+  </script>
+</html>

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#111213" />
+    <meta
+      name="description"
+      content="Главные герои, привычки и моменты вашего Telegram-чата. Локальный разбор с фотографиями и тремя вариантами подачи."
+    />
+    <title>ChatReview — ваш чат, без прикрас</title>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="wordmark" href="./" aria-label="ChatReview — на главную"
+          >chat<span>review</span></a
+        ><button class="text-button" id="how-button">
+          Как это работает <span data-icon="arrow"></span>
+        </button>
+      </header>
+      <main id="landing" class="landing">
+        <section class="hero">
+          <h1>Ваш чат.<br />Без прикрас.</h1>
+          <p class="intro">Все главные герои, привычки и моменты — в одном разборе.</p>
+          <button class="demo-link" id="demo-button">
+            Посмотреть пример <span data-icon="arrow"></span>
+          </button>
+          <div class="preview-wrap">
+            <div id="preview"></div>
+            <nav class="preview-nav" aria-label="Примеры слайдов">
+              <button id="preview-prev" aria-label="Предыдущий пример" class="icon-button">
+                <span data-icon="left"></span></button
+              ><button id="preview-next" aria-label="Следующий пример" class="icon-button">
+                <span data-icon="right"></span>
+              </button>
+            </nav>
+          </div>
+        </section>
+        <aside class="settings" aria-label="Настройки разбора">
+          <h2>Как подать ваш чат</h2>
+          <fieldset class="tone-options">
+            <legend class="sr-only">Тон разбора</legend>
+            <label
+              ><input type="radio" name="tone" value="summary" /><span
+                ><strong>Итоги</strong><small>Спокойный разбор без оценок.</small></span
+              ></label
+            ><label
+              ><input type="radio" name="tone" value="friendly" checked /><span
+                ><strong>Дружески</strong><small>С лёгкой иронией, но без негатива.</small></span
+              ></label
+            ><label
+              ><input type="radio" name="tone" value="sharp" /><span
+                ><strong>Пожёстче</strong><small>Честно, прямо, без церемоний.</small></span
+              ></label
+            >
+          </fieldset>
+          <div class="photos-setting">
+            <label class="switch-label"
+              ><strong>С фотографиями</strong
+              ><input id="photos-toggle" type="checkbox" role="switch" /><span
+                class="switch"
+                aria-hidden="true"
+              ></span
+            ></label>
+            <p>Включите, чтобы добавить фото<br />из чата в разбор.</p>
+          </div>
+          <button class="primary upload-button" id="upload-button">
+            Загрузить чат <span data-icon="upload"></span>
+          </button>
+          <p class="upload-hint">JSON или папка экспорта</p>
+          <button class="folder-link" id="folder-button">Выбрать папку</button>
+          <p class="privacy-note">Всё обрабатывается на вашем устройстве.</p>
+        </aside>
+      </main>
+      <section id="results" hidden aria-label="Разбор чата">
+        <div class="results-top">
+          <button class="text-button" id="back-button">
+            <span data-icon="left"></span> Другой чат
+          </button>
+          <p id="chat-title"></p>
+          <span id="demo-badge" hidden>Пример · вымышленные данные</span>
+        </div>
+        <div class="result-controls">
+          <label
+            >Подача
+            <select id="result-tone">
+              <option value="summary">Итоги</option>
+              <option value="friendly">Дружески</option>
+              <option value="sharp">Пожёстче</option>
+            </select></label
+          ><label class="result-photo-label"
+            ><input type="checkbox" id="result-photos" /> С фотографиями</label
+          ><button class="text-button" id="add-photos">
+            Добавить папку с фото <span data-icon="plus"></span>
+          </button>
+        </div>
+        <p id="photo-notice" class="notice" hidden></p>
+        <div
+          id="slide-view"
+          tabindex="0"
+          aria-label="Слайды разбора. Стрелки влево и вправо переключают слайды."
+        ></div>
+        <div class="viewer-bottom">
+          <nav class="viewer-nav" aria-label="Навигация по слайдам">
+            <button class="icon-button" id="prev-slide" aria-label="Предыдущий слайд">
+              <span data-icon="left"></span></button
+            ><output id="slide-count" aria-live="polite"></output
+            ><button class="icon-button" id="next-slide" aria-label="Следующий слайд">
+              <span data-icon="right"></span>
+            </button>
+          </nav>
+          <div class="export-actions">
+            <button class="secondary" id="save-png">
+              <span data-icon="download"></span> Сохранить слайд</button
+            ><button class="primary" id="save-zip">Все слайды ZIP</button>
+          </div>
+        </div>
+      </section>
+      <p id="status" class="status" role="status" hidden></p>
+      <a id="download-result" class="download-result" hidden>Скачать файл</a>
+      <p id="error" class="error" role="alert" hidden></p>
+      <footer class="site-footer">
+        <div>
+          <span class="step-number">1</span>
+          <p>Экспортируйте чат<span>В Telegram Desktop → JSON</span></p>
+        </div>
+        <div>
+          <span class="step-number">2</span>
+          <p>Загрузите файл<span>Всё остаётся в вашем браузере</span></p>
+        </div>
+        <div>
+          <span class="step-number">3</span>
+          <p>Заберите слайды<span>Поделитесь с теми, кто в теме</span></p>
+        </div>
+        <a
+          href="https://github.com/alexanderawerin/ChatReview"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Исходный код на GitHub"
+          ><span data-icon="github"></span
+        ></a>
+      </footer>
+    </div>
+    <input type="file" id="file-input" accept=".json,application/json" hidden /><input
+      type="file"
+      id="folder-input"
+      webkitdirectory
+      multiple
+      hidden
+    />
+    <dialog id="instructions">
+      <button class="icon-button close-dialog" aria-label="Закрыть">
+        <span data-icon="close"></span>
+      </button>
+      <h2>Из Telegram —<br />в историю вашего чата.</h2>
+      <ol>
+        <li>Откройте нужный чат в <strong>Telegram Desktop</strong> на компьютере.</li>
+        <li>В меню чата выберите <strong>«Экспорт истории чата»</strong>.</li>
+        <li>
+          Выберите формат <strong>JSON</strong> и нужный период. Для слайдов с фото включите экспорт
+          фотографий.
+        </li>
+        <li>Загрузите <strong>result.json</strong> или всю папку экспорта в ChatReview.</li>
+      </ol>
+      <p>
+        Сообщения и фотографии обрабатываются только в браузере. Сервер, регистрация и отправка
+        переписки в ИИ не нужны.
+      </p>
+      <button class="primary close-instructions">Понятно</button>
+    </dialog>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
