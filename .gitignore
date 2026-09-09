@@ -1,0 +1,41 @@
+# Legacy variants remain local until the unified application is ready.
+/ChatRoasted/
+/ChatWrapped (base)/
+/ChatWrapped (с фото)/
+
+# Private Telegram exports and media
+data/
+exports/
+ChatExport*/
+result.json
+photos/
+video_files/
+voice_messages/
+stickers/
+*.zip
+*.tar
+*.tar.gz
+*.7z
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.session
+*.session-journal
+
+# Dependencies and generated output
+node_modules/
+coverage/
+dist/
+playwright-report/
+test-results/
+*.log
+
+# Local tooling and OS files
+.DS_Store
+._*
+.idea/
+.vscode/
+.codex/
+.agents/
