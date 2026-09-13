@@ -2394,7 +2394,7 @@ body:has(#results:not([hidden])) :is(#status, #error, #download-result) {
   color: inherit;
   background: none;
   padding: 0;
-  margin: 24px 0 0;
+  margin: 40px 0 0;
   border-radius: 0;
 }
 .hero[data-scene='calm'] {
