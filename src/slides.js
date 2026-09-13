@@ -596,7 +596,7 @@ export function renderSlide(
       : '';
   let content;
   if (summaryOverview)
-    content = `<div class="award-body overview-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${overviewCaption}</div>`;
+    content = `<div class="award-body overview-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="overview-metric"><span class="big-number">${e(formatNumber(slide.value))}</span><span class="unit">${e(slide.unit)}</span></div>${overviewCaption}</div>`;
   else if (tone === 'summary' && slide.kind === 'award')
     content = `<div class="fact-table"><div class="fact-table-labels"><span>Участник</span><span>${e(slide.unit)}</span></div><ul class="slide-ranking"><li class="fact-leader"><span>${e(slide.name)}</span><strong>${e(formatNumber(slide.value))}</strong></li>${rows}</ul></div>`;
   else if (slide.kind === 'quote')
@@ -615,8 +615,7 @@ export function renderSlide(
   const caption = captionText ? `<p class="story-caption">${e(captionText)}</p>` : '';
   const punchline =
     roastHeadlines[slide.id] || String(slide.caption || slide.title).replace(/\.$/, '');
-  const note =
-    tone === 'friendly' || !slide.note ? '' : `<p class="story-note">${e(slide.note)}</p>`;
+  const note = tone === 'sharp' && slide.note ? `<p class="story-note">${e(slide.note)}</p>` : '';
   const headingMood =
     tone === 'friendly' &&
     slide.kind !== 'chart' &&

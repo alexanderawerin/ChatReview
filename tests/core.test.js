@@ -266,7 +266,9 @@ test('calm slides lead with facts without repeating their table labels', () => {
   const slides = buildSlides(stats, { tone: 'summary' });
   const overview = renderSlide(slides.find((slide) => slide.id === 'overview'));
   assert.doesNotMatch(overview, /<header class="story-header">Ваш чат в цифрах<\/header>/);
+  assert.match(overview, /class="overview-metric"[\s\S]*class="big-number"[\s\S]*class="unit"/);
   assert.ok(overview.indexOf('overview-caption') > overview.indexOf('class="unit"'));
+  assert.ok(slides.every((slide) => !renderSlide(slide).includes('story-note')));
   for (const id of ['maxStreak', 'reactionsGiven', 'conversationEnds', 'messages']) {
     const slide = slides.find((item) => item.id === id);
     assert.equal(slide.rows.length, 4, `${id} should show five participants including the leader`);
@@ -299,7 +301,7 @@ test('every factual slide keeps participants and limitations across all moods', 
       }
       const html = renderSlide(slide);
       for (const row of slide.rows || []) assert.ok(html.includes(escapeHtml(row.name)));
-      if (slide.note && toneIndex !== 1) assert.ok(html.includes(escapeHtml(slide.note)));
+      if (slide.note && toneIndex === 2) assert.ok(html.includes(escapeHtml(slide.note)));
     }
     const html = slides.map((s) => renderSlide(s));
     assert.ok(!/class="(?:mood|roast)-emoji"/.test(html[0]));
