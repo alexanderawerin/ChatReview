@@ -247,6 +247,42 @@ test('day labels use Russian calendar dates independently of the viewer timezone
   assert.deepEqual(stats.topDays, original);
 });
 
+test('calm slides lead with facts without repeating their table labels', () => {
+  const stats = analyzeChat(demoChat());
+  const extra = { ...stats.authors[0], name: 'Пятый участник' };
+  stats.authors.push(extra);
+  for (const author of stats.authors) {
+    author.messages = 100;
+    author.uniqueWords = 20 + stats.authors.indexOf(author);
+    for (const key of [
+      'reactionsGiven',
+      'conversationEnds',
+      'maxStreak',
+      'reactionsReceived',
+      'caps',
+    ])
+      author[key] = 10 + stats.authors.indexOf(author);
+  }
+  const slides = buildSlides(stats, { tone: 'summary' });
+  const overview = renderSlide(slides.find((slide) => slide.id === 'overview'));
+  assert.doesNotMatch(overview, /<header class="story-header">Ваш чат в цифрах<\/header>/);
+  assert.ok(overview.indexOf('overview-caption') > overview.indexOf('class="unit"'));
+  for (const id of ['maxStreak', 'reactionsGiven', 'conversationEnds', 'messages']) {
+    const slide = slides.find((item) => item.id === id);
+    assert.equal(slide.rows.length, 4, `${id} should show five participants including the leader`);
+    assert.equal(slide.caption, '');
+  }
+  for (const id of ['vocab-min', 'vocab-max']) {
+    const slide = slides.find((item) => item.id === id);
+    assert.equal(slide.rows.length, 4, `${id} should compare five participants`);
+    assert.equal(slide.caption, '');
+  }
+  assert.equal(slides.find((slide) => slide.id === 'caps').title, 'Кто пишет капсом');
+  assert.equal(slides.find((slide) => slide.id === 'caps').note, '');
+  for (const id of ['media', 'weekdays', 'words', 'hours', 'reactions', 'days'])
+    assert.equal(slides.find((slide) => slide.id === id).caption, '');
+});
+
 test('every factual slide keeps participants and limitations across all moods', () => {
   const stats = analyzeChat(demoChat());
   stats.authors.forEach((author, i) => {

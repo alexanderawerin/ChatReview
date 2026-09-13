@@ -141,7 +141,7 @@ const awards = [
   ],
   [
     'caps',
-    ['Сообщения заглавными', 'Громко и ясно', 'CAPS LOCK ЗАЛИП'],
+    ['Кто пишет капсом', 'Громко и ясно', 'CAPS LOCK ЗАЛИП'],
     [
       'Сообщения с преобладанием заглавных букв.',
       'Чтобы точно никто не пропустил.',
@@ -253,7 +253,9 @@ export function buildSlides(
       name: winner.name,
       value: winner[key],
       unit,
-      caption: captions[index],
+      // The calm layout puts the metric in the table header. Repeating the
+      // same sentence above that table only adds noise.
+      caption: index === 0 ? '' : captions[index],
       note: ['reactionsGiven', 'gratitudeGiven', 'gratitudeReceived'].includes(key)
         ? 'Учтены реакции с известным отправителем. Данные могут быть неполными'
         : key === 'conversationEnds'
@@ -263,13 +265,13 @@ export function buildSlides(
             : key === 'morning'
               ? 'С 05:00 до 07:59 · время из экспорта'
               : key === 'caps'
-                ? 'Не менее 70% букв — заглавные'
+                ? ''
                 : key === 'short'
                   ? 'До трёх слов и меньше 20 символов'
                   : key === 'silenceBreaks'
                     ? 'Первое сообщение после паузы от двух часов'
                     : '',
-      rows: people.slice(1, 4).map((a) => ({ name: a.name, count: a[key] })),
+      rows: people.slice(1, 5).map((a) => ({ name: a.name, count: a[key] })),
     });
   }
   const mascotIndex = slides.findIndex((slide) => slide.id === 'maxStreak');
@@ -312,11 +314,9 @@ export function buildSlides(
       kind: 'ranking',
       title: ['Форматы сообщений', 'Всё, что мы принесли в чат', 'Мультимедийный завал'][index],
       rows: mediaRows.slice(0, 5),
-      caption: [
-        `Наиболее частый формат: ${mediaRows[0].name.toLowerCase()}`,
-        'У нас с собой и картинки, и поговорить',
-        'Всё в чат. Разбираться будут потом',
-      ][index],
+      caption: ['', 'У нас с собой и картинки, и поговорить', 'Всё в чат. Разбираться будут потом'][
+        index
+      ],
     });
   if (stats.weekdays.some(Boolean))
     slides.push({
@@ -329,7 +329,7 @@ export function buildSlides(
         name: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][day],
         count: stats.weekdays[day],
       })),
-      caption: 'Сообщения по дням недели.',
+      caption: ['', 'Сообщения по дням недели.', 'Сообщения по дням недели.'][index],
     });
   const vocabulary = stats.authors
     .filter((author) => author.messages >= 50)
@@ -356,11 +356,14 @@ export function buildSlides(
         unit: 'разных слов',
         caption:
           index === 0
-            ? 'Разные слова относительно числа сообщений'
+            ? ''
             : id === 'vocab-min'
               ? 'Любимые слова всегда под рукой'
               : 'Для каждой мысли найдётся своё слово',
         note: `На ${formatNumber(author.messages)} сообщений · сравнение среди участников с 50+ сообщениями`,
+        rows: (id === 'vocab-min' ? vocabulary.slice(1) : vocabulary.slice(0, -1).reverse())
+          .slice(0, 4)
+          .map((a) => ({ name: a.name, count: a.uniqueWords })),
       });
   if (stats.words.length)
     slides.push({
@@ -368,11 +371,9 @@ export function buildSlides(
       kind: 'words',
       title: ['Частые слова', 'Наш общий словарь', 'Опять за своё'][index],
       rows: stats.words.slice(0, 8),
-      caption: [
-        'Частота употребления слов',
-        'Наш маленький разговорник. Издание для своих',
-        'Да мы с первого раза поняли',
-      ][index],
+      caption: ['', 'Наш маленький разговорник. Издание для своих', 'Да мы с первого раза поняли'][
+        index
+      ],
       note: 'Без служебных слов, ссылок и упоминаний',
     });
   if (stats.reactions.length)
@@ -383,11 +384,7 @@ export function buildSlides(
         index
       ],
       rows: stats.reactions.slice(0, 5),
-      caption: [
-        'Количество реакций каждого типа',
-        'Маленькие значки, много чувств',
-        'Зачем слова, если палец уже обучен',
-      ][index],
+      caption: ['', 'Маленькие значки, много чувств', 'Зачем слова, если палец уже обучен'][index],
     });
   if (stats.hours.some(Boolean))
     slides.push({
@@ -395,7 +392,7 @@ export function buildSlides(
       kind: 'chart',
       title: ['Когда вы пишете', 'Время собраться', 'Час пик уведомлений'][index],
       rows: stats.hours.map((count, hour) => ({ name: String(hour).padStart(2, '0'), count })),
-      caption: 'Сообщения по часам · время из экспорта.',
+      caption: ['', 'Сообщения по часам', 'Сообщения по часам'][index],
     });
   if (stats.topDays.length)
     slides.push({
@@ -407,11 +404,9 @@ export function buildSlides(
         'Дни информационного прорыва',
       ][index],
       rows: stats.topDays.slice(0, 5).map((row) => ({ ...row, name: formatDay(row.name) })),
-      caption: [
-        'Количество сообщений за календарный день',
-        'Кажется, в эти дни мы особенно соскучились',
-        'Кнопку «отправить» явно заело',
-      ][index],
+      caption: ['', 'Кажется, в эти дни мы особенно соскучились', 'Кнопку «отправить» явно заело'][
+        index
+      ],
     });
   if (stats.longest.length)
     slides.push({
@@ -593,8 +588,15 @@ export function renderSlide(
     tone === 'friendly' && slide.kind !== 'chart'
       ? `<div class="mood-emoji" aria-hidden="true">${emoji}</div>`
       : '';
+  const summaryOverview = tone === 'summary' && slide.kind === 'overview';
+  const overviewCaption =
+    summaryOverview && slide.caption
+      ? `<p class="overview-caption">${e(String(slide.caption).replace(/\.$/, ''))}</p>`
+      : '';
   let content;
-  if (tone === 'summary' && slide.kind === 'award')
+  if (summaryOverview)
+    content = `<div class="award-body overview-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${overviewCaption}</div>`;
+  else if (tone === 'summary' && slide.kind === 'award')
     content = `<div class="fact-table"><div class="fact-table-labels"><span>Участник</span><span>${e(slide.unit)}</span></div><ul class="slide-ranking"><li class="fact-leader"><span>${e(slide.name)}</span><strong>${e(formatNumber(slide.value))}</strong></li>${rows}</ul></div>`;
   else if (slide.kind === 'quote')
     content = `<blockquote>${e(slide.text)}${slide.text.length >= 220 ? '…' : ''}</blockquote><p class="quote-author">${e(slide.name)}</p>`;
@@ -607,8 +609,9 @@ export function renderSlide(
     content = `<div class="award-body friendly-award-body">${mood}<div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p><h3 title="${e(slide.name)}">${e(slide.name)}</h3></div>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
   else
     content = `<div class="award-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
-  const title = `<header class="story-header">${e(slide.title)}</header>`;
-  const caption = `<p class="story-caption">${e(String(slide.caption || '').replace(/\.$/, ''))}</p>`;
+  const title = summaryOverview ? '' : `<header class="story-header">${e(slide.title)}</header>`;
+  const captionText = summaryOverview ? '' : String(slide.caption || '').replace(/\.$/, '');
+  const caption = captionText ? `<p class="story-caption">${e(captionText)}</p>` : '';
   const punchline =
     roastHeadlines[slide.id] || String(slide.caption || slide.title).replace(/\.$/, '');
   const note = slide.note ? `<p class="story-note">${e(slide.note)}</p>` : '';
@@ -623,7 +626,8 @@ export function renderSlide(
   const body =
     tone === 'sharp'
       ? `<div class="roast-lead">${title}<h2 class="roast-headline">${e(punchline)}</h2><div class="roast-emoji" aria-hidden="true">${emoji}</div></div><div class="story-content">${content}${dense || slide.kind === 'overview' || slide.id.startsWith('vocab-') ? caption : ''}</div>${note}`
-      : `<div class="story-heading">${title}${headingMood}${caption}</div><div class="story-content">${content}</div>${note}`;
+      : `${title || headingMood || caption ? `<div class="story-heading">${title}${headingMood}${caption}</div>` : ''}<div class="story-content">${content}</div>${note}`;
 
-  return `<article class="story story-${e(slide.kind)} tone-${tone} palette-${Number(slide.palette) % 4 || 0}" aria-label="${e(slide.title)}">${body}<footer class="story-footer"><span>${e(chatName)}</span><span>${number} / ${total}</span></footer></article>`;
+  const ariaLabel = summaryOverview ? 'Обзор чата' : slide.title;
+  return `<article class="story story-${e(slide.kind)} story-${e(slide.id)} tone-${tone} palette-${Number(slide.palette) % 4 || 0}" aria-label="${e(ariaLabel)}">${body}<footer class="story-footer"><span>${e(chatName)}</span><span>${number} / ${total}</span></footer></article>`;
 }

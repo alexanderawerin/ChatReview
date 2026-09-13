@@ -2437,6 +2437,25 @@ body:has(#results:not([hidden])) :is(#status, #error, #download-result) {
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* Calm overview starts with the fact itself; its context follows the count. */
+.story.tone-summary.story-overview .story-content {
+  grid-column: 1 / -1;
+  grid-row: 1 / 4;
+}
+.story.tone-summary.story-overview .overview-body {
+  max-width: 74cqw;
+}
+.story.tone-summary.story-overview .overview-caption {
+  margin: 0.8cqw 0 0;
+  font-size: 2.1cqw;
+  line-height: 1.35;
+}
+
+/* Give the long-streak nomination the same visual weight as the fact table. */
+.story.tone-summary.story-maxStreak .story-header {
+  font-size: 3.5cqw;
+}
+
 /* Reserve two name lines so the number baseline stays steady while paging. */
 .story .award-body h3 {
   min-height: 8.74cqw;
