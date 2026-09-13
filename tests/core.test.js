@@ -118,7 +118,6 @@ test('rendering escapes names, quotes and attributes', () => {
   assert.equal(html.includes('<script>'), false);
   assert.equal(html.includes('<img'), false);
   assert.equal(html.includes('<svg'), false);
-  assert.match(html, /&lt;iframe&gt;/);
 });
 test('single-message chats produce usable slides without invented awards', () => {
   const slides = buildSlides(analyzeChat({ messages: [msg(1, 'Один', { text: '' })] }));
@@ -268,6 +267,7 @@ test('calm slides lead with facts without repeating their table labels', () => {
   assert.doesNotMatch(overview, /<header class="story-header">Ваш чат в цифрах<\/header>/);
   assert.match(overview, /class="overview-metric"[\s\S]*class="big-number"[\s\S]*class="unit"/);
   assert.ok(overview.indexOf('overview-caption') > overview.indexOf('class="unit"'));
+  assert.ok(!overview.includes('story-footer'));
   assert.ok(slides.every((slide) => !renderSlide(slide).includes('story-note')));
   for (const id of ['maxStreak', 'reactionsGiven', 'conversationEnds', 'messages']) {
     const slide = slides.find((item) => item.id === id);
@@ -300,8 +300,12 @@ test('every factual slide keeps participants and limitations across all moods', 
         assert.deepEqual(slide[field], base[field], `${base.id}: ${field}`);
       }
       const html = renderSlide(slide);
+      assert.ok(!html.includes('story-footer'), `${base.id} should not show a footer`);
       for (const row of slide.rows || []) assert.ok(html.includes(escapeHtml(row.name)));
-      if (slide.note && toneIndex === 2) assert.ok(html.includes(escapeHtml(slide.note)));
+      if (slide.note && toneIndex === 2) {
+        assert.ok(!html.includes(escapeHtml(slide.note)));
+        assert.ok(!html.includes('story-note'));
+      }
     }
     const html = slides.map((s) => renderSlide(s));
     assert.ok(!/class="(?:mood|roast)-emoji"/.test(html[0]));
@@ -309,9 +313,12 @@ test('every factual slide keeps participants and limitations across all moods', 
       const friendly = html[1].match(/class="mood-emoji"[^>]*>([^<]+)/)?.[1];
       const sharp = html[2].match(/class="roast-emoji"[^>]*>([^<]+)/)?.[1];
       if (base.id === 'media') assert.match(html[1], /class="row-icon"/);
+      else if (['days', 'longest', 'mostReacted'].includes(base.id))
+        assert.ok(!html[1].includes('mood-emoji'), `Unexpected friendly emoji on ${base.id}`);
       else assert.ok(friendly, `Missing friendly emoji on ${base.id}`);
       assert.ok(sharp, `Missing roast emoji on ${base.id}`);
-      assert.notEqual(friendly, sharp, `Shared mood emoji on ${base.id}`);
+      if (!['days', 'longest', 'mostReacted'].includes(base.id))
+        assert.notEqual(friendly, sharp, `Shared mood emoji on ${base.id}`);
     }
     if (base.kind === 'award') assert.ok(html[0].includes('fact-table'));
   }
@@ -321,6 +328,11 @@ test('friendly flow opens with the overview and keeps its card order intentional
   const stats = analyzeChat(demoChat());
   const slides = buildSlides(stats, { tone: 'friendly' });
   assert.equal(slides[0].id, 'overview');
+  const overview = renderSlide(slides[0]);
+  assert.ok(overview.indexOf('<h3') < overview.indexOf('mood-emoji'));
+  assert.ok(overview.indexOf('mood-emoji') < overview.indexOf('big-number'));
+  assert.ok(overview.indexOf('class="unit"') < overview.indexOf('friendly-overview-context'));
+  assert.ok(!overview.includes('story-footer'));
   const award = renderSlide(slides.find((slide) => slide.id === 'maxStreak'));
   assert.ok(award.indexOf('mood-emoji') < award.indexOf('big-number'));
   assert.ok(award.indexOf('mood-emoji') < award.indexOf('<h3'));
@@ -339,5 +351,35 @@ test('friendly flow opens with the overview and keeps its card order intentional
   const reactions = renderSlide(slides.find((slide) => slide.id === 'reactions'));
   assert.match(reactions, /❤️/);
   const days = renderSlide(slides.find((slide) => slide.id === 'days'));
-  assert.ok(days.indexOf('story-caption') < days.indexOf('mood-emoji'));
+  assert.ok(!days.includes('mood-emoji'));
+  assert.ok(!renderSlide(slides.find((slide) => slide.id === 'longest')).includes('mood-emoji'));
+  assert.ok(
+    !renderSlide(slides.find((slide) => slide.id === 'mostReacted')).includes('mood-emoji'),
+  );
+});
+
+test('sharp flow removes supporting copy and keeps quote metadata with its author', () => {
+  const slides = buildSlides(analyzeChat(demoChat()), { tone: 'sharp' });
+  const renderSharp = (slide) => renderSlide(slide);
+  const overview = renderSharp(slides.find((slide) => slide.id === 'overview'));
+  assert.ok(!overview.includes('Product Design'));
+  assert.ok(!overview.includes('story-caption'));
+  assert.ok(!overview.includes('1 / 32'));
+  assert.ok(!overview.includes('story-note'));
+
+  for (const slide of slides) {
+    const html = renderSharp(slide);
+    assert.ok(!html.includes('story-note'), `${slide.id} should not show a sharp note`);
+    assert.ok(!html.includes('story-caption'), `${slide.id} should not show a sharp caption`);
+    assert.ok(!html.includes('story-footer'), `${slide.id} should not show a footer`);
+    assert.ok(!html.includes('1 / 32'), `${slide.id} should not show the sharp counter`);
+  }
+
+  const quote = renderSharp(slides.find((slide) => slide.id === 'longest'));
+  assert.match(quote, /class="quote-author"[^>]*>[^<]+<span class="quote-meta">/);
+  assert.match(quote, /151 символов/);
+  assert.ok(!quote.includes('показано начало сообщения'));
+
+  const reactions = renderSharp(slides.find((slide) => slide.id === 'reactions'));
+  assert.match(reactions, /❤️/);
 });

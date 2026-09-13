@@ -74,3 +74,16 @@ Reworked the shared reaction example and all slide templates. Calm awards now us
 Source facts, participant selection and applicable coverage/threshold notes remain consistent across moods. Plain-language reaction coverage replaces the `recent` field reference. Literal source reaction symbols and quotes are preserved independently of decorative mood emoji. The synthetic comparison at `test-results/mood-comparison.html` uses the supplied example: 730, 564, 463 and 452 reactions.
 
 Visual checks covered the three reaction variants, centered overview, reordered award card, media row icons, words heading emoji, dense words, long names and a long roast quote. Increasing the friendly name initially broke a long surname onto a third line; corrected it before final export. An expanded fixture covers 108 slides at 1280×720, 1241×806 and 1920×1016: 324 layouts pass bounds, content overflow, name-line and friendly participant/emoji visibility checks. All six final export combinations pass: 168 decoded PNG at 1280×720, including full-frame photo checks. Seventeen unit tests, lint, formatting, build and diff checks pass. Physical TV viewing and user visual acceptance remain unverified.
+
+## 13 September: friendly chat-garden composition
+
+Source visual truth: `/Users/alexanderawerin/.codex/generated_images/01a08462-52c0-74a1-99a9-a65cc2e287c0/exec-ac1371ef-f5b4-4d48-9139-8f26f9d12942.png` (1680×944, 16:9; selected Image Gen option 3).
+Implementation screenshot: not captured. The local preview builds successfully, but browser/Computer Use verification was not authorized in this turn.
+Viewport: target export 1280×720; CSS uses the existing container-query slide system and responsive result surface.
+State: friendly tone, representative award/overview/dense/quote/chart slides; real demo data preserved.
+
+The implementation adapts the selected composition into data-driven markup: friendly awards place the title, emoji, winner, metric and caption in one central speech-bubble surface, while real participant rows form a connected evidence orbit. Overview, rankings, words, charts and quotes reuse the same soft pastel field and bubble language without inventing content. Calm, sharp and photo slides keep their existing structures and facts.
+
+Automated checks passed: 19 unit tests, ESLint, Prettier check, production build and `git diff --check`. Full-view and focused visual comparison are blocked until a browser-rendered screenshot is available.
+
+final result: blocked

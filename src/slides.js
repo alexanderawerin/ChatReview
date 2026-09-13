@@ -567,21 +567,16 @@ const roastHeadlines = {
   'vocab-max': 'Словарь Ожегова вышел в чат',
 };
 
-export function renderSlide(
-  slide,
-  { mascotUrl = '', chatName = 'chatreview', number = 1, total = 1 } = {},
-) {
+export function renderSlide(slide, { mascotUrl = '' } = {}) {
   const e = escapeHtml;
   const tone = ['friendly', 'sharp'].includes(slide.tone) ? slide.tone : 'summary';
   const emoji =
     (tone === 'sharp' ? roastEmoji : friendlyEmoji)[slide.id] || (tone === 'sharp' ? '🥴' : '✨');
-  const dense = ['ranking', 'words', 'chart', 'quote'].includes(slide.kind);
   if (slide.kind === 'photo')
     return `<article class="story story-photo" aria-label="${e(slide.title)}"><img class="photo" src="${e(slide.image)}" alt="${e(slide.title)}"><div class="photo-credit">${e(slide.name)}</div></article>`;
   const rows = (slide.rows || [])
     .map((row) => {
-      const rowName =
-        tone === 'friendly' && slide.id === 'reactions' && row.name === '❤' ? '❤️' : row.name;
+      const rowName = slide.id === 'reactions' && row.name === '❤' ? '❤️' : row.name;
       return `<li>${tone === 'friendly' && row.icon ? `<span class="row-icon" aria-hidden="true">${e(row.icon)}</span>` : ''}<span class="row-label">${e(rowName)}</span><strong>${e(formatNumber(row.count))}</strong></li>`;
     })
     .join('');
@@ -590,6 +585,13 @@ export function renderSlide(
       ? `<div class="mood-emoji" aria-hidden="true">${emoji}</div>`
       : '';
   const summaryOverview = tone === 'summary' && slide.kind === 'overview';
+  const friendlyOverview = tone === 'friendly' && slide.kind === 'overview';
+  const friendlyAward = tone === 'friendly' && slide.kind === 'award';
+  const sharpOverview = tone === 'sharp' && slide.kind === 'overview';
+  const friendlyOverviewCaption = String(slide.caption || '').replace(/\.$/, '');
+  const friendlyOverviewContext = friendlyOverview
+    ? `<div class="friendly-overview-context"><header class="story-header">${e(slide.title)}</header>${friendlyOverviewCaption ? `<p class="story-caption">${e(friendlyOverviewCaption)}</p>` : ''}</div>`
+    : '';
   const overviewCaption =
     summaryOverview && slide.caption
       ? `<p class="overview-caption">${e(String(slide.caption).replace(/\.$/, ''))}</p>`
@@ -599,36 +601,57 @@ export function renderSlide(
     content = `<div class="award-body overview-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="overview-metric"><span class="big-number">${e(formatNumber(slide.value))}</span><span class="unit">${e(slide.unit)}</span></div>${overviewCaption}</div>`;
   else if (tone === 'summary' && slide.kind === 'award')
     content = `<div class="fact-table"><div class="fact-table-labels"><span>Участник</span><span>${e(slide.unit)}</span></div><ul class="slide-ranking"><li class="fact-leader"><span>${e(slide.name)}</span><strong>${e(formatNumber(slide.value))}</strong></li>${rows}</ul></div>`;
-  else if (slide.kind === 'quote')
-    content = `<blockquote>${e(slide.text)}${slide.text.length >= 220 ? '…' : ''}</blockquote><p class="quote-author">${e(slide.name)}</p>`;
-  else if (slide.kind === 'chart') {
+  else if (slide.kind === 'quote') {
+    const quoteCaption = String(slide.caption || '').replace(
+      /\s*·\s*показано начало сообщения\.?$/,
+      '',
+    );
+    const quoteMeta =
+      tone === 'sharp' && slide.caption
+        ? `<span class="quote-meta"> · ${e(quoteCaption)}</span>`
+        : '';
+    content = `<blockquote>${e(slide.text)}${slide.text.length >= 220 ? '…' : ''}</blockquote><p class="quote-author">${e(slide.name)}${quoteMeta}</p>`;
+  } else if (slide.kind === 'chart') {
     const max = Math.max(...slide.rows.map((row) => row.count), 1);
     content = `<div class="chart">${slide.rows.map((row, i) => `<div class="bar-column" title="${e(row.name)}:00 — ${e(row.count)}"><i style="height:${Math.max(1, (row.count / max) * 100)}%"></i><small>${slide.rows.length <= 7 || i % 3 === 0 ? row.name : ''}</small></div>`).join('')}</div>`;
   } else if (slide.kind === 'ranking' || slide.kind === 'words')
     content = `<ul class="slide-ranking ${slide.kind}">${rows}</ul>`;
-  else if (tone === 'friendly')
-    content = `<div class="award-body friendly-award-body">${mood}${slide.kind === 'award' ? `<h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>` : `<div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p><h3 title="${e(slide.name)}">${e(slide.name)}</h3>`}</div>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
-  else
-    content = `<div class="award-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
-  const title = summaryOverview ? '' : `<header class="story-header">${e(slide.title)}</header>`;
-  const captionText = summaryOverview ? '' : String(slide.caption || '').replace(/\.$/, '');
+  else if (tone === 'friendly') {
+    const friendlyAwardCaption =
+      friendlyAward && slide.caption
+        ? `<p class="friendly-card-caption">${e(String(slide.caption).replace(/\.$/, ''))}</p>`
+        : '';
+    const friendlyAwardKicker = friendlyAward
+      ? `<span class="friendly-kicker">${e(slide.title)}</span>`
+      : '';
+    content = `<div class="award-body friendly-award-body">${friendlyOverview ? `<h3 title="${e(slide.name)}">${e(slide.name)}</h3>${mood}<div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${friendlyOverviewContext}` : `${friendlyAwardKicker}${mood}${slide.kind === 'award' ? `<h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${friendlyAwardCaption}` : `<div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p><h3 title="${e(slide.name)}">${e(slide.name)}</h3>`}`}</div>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : friendlyOverview ? '' : `<ul class="runners">${rows}</ul>`}`;
+  } else
+    content = `<div class="award-body">${sharpOverview ? '' : `<h3 title="${e(slide.name)}">${e(slide.name)}</h3>`}<div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
+  const title =
+    summaryOverview || friendlyOverview || friendlyAward
+      ? ''
+      : `<header class="story-header">${e(slide.title)}</header>`;
+  const captionText =
+    summaryOverview || friendlyOverview || friendlyAward
+      ? ''
+      : String(slide.caption || '').replace(/\.$/, '');
   const caption = captionText ? `<p class="story-caption">${e(captionText)}</p>` : '';
   const punchline =
     roastHeadlines[slide.id] || String(slide.caption || slide.title).replace(/\.$/, '');
-  const note = tone === 'sharp' && slide.note ? `<p class="story-note">${e(slide.note)}</p>` : '';
   const headingMood =
     tone === 'friendly' &&
     slide.kind !== 'chart' &&
     slide.kind !== 'award' &&
     slide.kind !== 'overview' &&
-    slide.id !== 'media'
+    slide.id !== 'media' &&
+    !['days', 'longest', 'mostReacted'].includes(slide.id)
       ? mood
       : '';
   const body =
     tone === 'sharp'
-      ? `<div class="roast-lead">${title}<h2 class="roast-headline">${e(punchline)}</h2><div class="roast-emoji" aria-hidden="true">${emoji}</div></div><div class="story-content">${content}${dense || slide.kind === 'overview' || slide.id.startsWith('vocab-') ? caption : ''}</div>${note}`
-      : `${title || headingMood || caption ? `<div class="story-heading">${title}${slide.id === 'days' ? `${caption}${headingMood}` : `${headingMood}${caption}`}</div>` : ''}<div class="story-content">${content}</div>${note}`;
+      ? `<div class="roast-lead">${title}<h2 class="roast-headline">${e(punchline)}</h2><div class="roast-emoji" aria-hidden="true">${emoji}</div></div><div class="story-content">${content}</div>`
+      : `${title || headingMood || caption ? `<div class="story-heading">${title}${slide.id === 'days' ? `${caption}${headingMood}` : `${headingMood}${caption}`}</div>` : ''}<div class="story-content">${content}</div>`;
 
   const ariaLabel = summaryOverview ? 'Обзор чата' : slide.title;
-  return `<article class="story story-${e(slide.kind)} story-${e(slide.id)} tone-${tone} palette-${Number(slide.palette) % 4 || 0}" aria-label="${e(ariaLabel)}">${body}<footer class="story-footer"><span>${e(chatName)}</span><span>${number} / ${total}</span></footer></article>`;
+  return `<article class="story story-${e(slide.kind)} story-${e(slide.id)} tone-${tone} palette-${Number(slide.palette) % 4 || 0}" aria-label="${e(ariaLabel)}">${body}</article>`;
 }

@@ -5,7 +5,6 @@ import mascotUrl from '../assets/roast-cat.png';
 import arrow from '@phosphor-icons/core/assets/regular/arrow-right.svg?raw';
 import left from '@phosphor-icons/core/assets/regular/arrow-left.svg?raw';
 import upload from '@phosphor-icons/core/assets/regular/upload-simple.svg?raw';
-import download from '@phosphor-icons/core/assets/regular/download-simple.svg?raw';
 import plus from '@phosphor-icons/core/assets/regular/plus.svg?raw';
 import close from '@phosphor-icons/core/assets/regular/x.svg?raw';
 import { analyzeChat } from './analyzer.js';
@@ -19,7 +18,6 @@ const icons = {
   left,
   right: arrow,
   upload,
-  download,
   plus,
   close,
   help,
@@ -80,8 +78,9 @@ function renderPreview() {
   document.querySelectorAll('.headline-emoji').forEach((element, index) => {
     element.textContent = scene.emojis[index];
   });
-  $('#preview-count').textContent =
-    `${state.previewIndex + 1} / ${heroScenes.length} · ${scene.label}`;
+  $('#preview-count .preview-position').textContent =
+    `${state.previewIndex + 1} / ${heroScenes.length}`;
+  $('#preview-count .preview-scene').textContent = ` · ${scene.label}`;
 }
 function renderCurrent() {
   $('#slide-view').innerHTML = renderSlide(state.slides[state.index], {
