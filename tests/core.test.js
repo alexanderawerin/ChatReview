@@ -293,13 +293,13 @@ test('every factual slide keeps participants and limitations across all moods', 
   const versions = ['summary', 'friendly', 'sharp'].map((tone) => buildSlides(stats, { tone }));
   for (const base of versions[0]) {
     const slides = versions.map((list) => list.find((s) => s.id === base.id));
-    for (const slide of slides) {
+    for (const [toneIndex, slide] of slides.entries()) {
       for (const field of ['name', 'value', 'unit', 'rows', 'note']) {
         assert.deepEqual(slide[field], base[field], `${base.id}: ${field}`);
       }
       const html = renderSlide(slide);
       for (const row of slide.rows || []) assert.ok(html.includes(escapeHtml(row.name)));
-      if (slide.note) assert.ok(html.includes(escapeHtml(slide.note)));
+      if (slide.note && toneIndex !== 1) assert.ok(html.includes(escapeHtml(slide.note)));
     }
     const html = slides.map((s) => renderSlide(s));
     assert.ok(!/class="(?:mood|roast)-emoji"/.test(html[0]));
@@ -321,11 +321,21 @@ test('friendly flow opens with the overview and keeps its card order intentional
   assert.equal(slides[0].id, 'overview');
   const award = renderSlide(slides.find((slide) => slide.id === 'maxStreak'));
   assert.ok(award.indexOf('mood-emoji') < award.indexOf('big-number'));
+  assert.ok(award.indexOf('mood-emoji') < award.indexOf('<h3'));
+  assert.ok(award.indexOf('<h3') < award.indexOf('big-number'));
   assert.ok(award.indexOf('big-number') < award.indexOf('class="unit"'));
-  assert.ok(award.indexOf('class="unit"') < award.indexOf('<h3'));
-  const words = renderSlide(slides.find((slide) => slide.id === 'words'));
+  assert.ok(!award.includes('story-note'));
+  const support = renderSlide(slides.find((slide) => slide.id === 'reactionsGiven'));
+  assert.ok(!support.includes('story-note'));
+  const wordsNote = renderSlide(slides.find((slide) => slide.id === 'words'));
+  assert.ok(!wordsNote.includes('story-note'));
+  const words = wordsNote;
   assert.ok(words.indexOf('mood-emoji') < words.indexOf('story-content'));
   const media = renderSlide(slides.find((slide) => slide.id === 'media'));
   assert.ok(!media.includes('mood-emoji'));
   assert.match(media, /class="row-icon"/);
+  const reactions = renderSlide(slides.find((slide) => slide.id === 'reactions'));
+  assert.match(reactions, /❤️/);
+  const days = renderSlide(slides.find((slide) => slide.id === 'days'));
+  assert.ok(days.indexOf('story-caption') < days.indexOf('mood-emoji'));
 });

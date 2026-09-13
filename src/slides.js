@@ -579,10 +579,11 @@ export function renderSlide(
   if (slide.kind === 'photo')
     return `<article class="story story-photo" aria-label="${e(slide.title)}"><img class="photo" src="${e(slide.image)}" alt="${e(slide.title)}"><div class="photo-credit">${e(slide.name)}</div></article>`;
   const rows = (slide.rows || [])
-    .map(
-      (row) =>
-        `<li>${tone === 'friendly' && row.icon ? `<span class="row-icon" aria-hidden="true">${e(row.icon)}</span>` : ''}<span class="row-label">${e(row.name)}</span><strong>${e(formatNumber(row.count))}</strong></li>`,
-    )
+    .map((row) => {
+      const rowName =
+        tone === 'friendly' && slide.id === 'reactions' && row.name === '❤' ? '❤️' : row.name;
+      return `<li>${tone === 'friendly' && row.icon ? `<span class="row-icon" aria-hidden="true">${e(row.icon)}</span>` : ''}<span class="row-label">${e(rowName)}</span><strong>${e(formatNumber(row.count))}</strong></li>`;
+    })
     .join('');
   const mood =
     tone === 'friendly' && slide.kind !== 'chart'
@@ -606,7 +607,7 @@ export function renderSlide(
   } else if (slide.kind === 'ranking' || slide.kind === 'words')
     content = `<ul class="slide-ranking ${slide.kind}">${rows}</ul>`;
   else if (tone === 'friendly')
-    content = `<div class="award-body friendly-award-body">${mood}<div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p><h3 title="${e(slide.name)}">${e(slide.name)}</h3></div>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
+    content = `<div class="award-body friendly-award-body">${mood}${slide.kind === 'award' ? `<h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>` : `<div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p><h3 title="${e(slide.name)}">${e(slide.name)}</h3>`}</div>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
   else
     content = `<div class="award-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
   const title = summaryOverview ? '' : `<header class="story-header">${e(slide.title)}</header>`;
@@ -614,7 +615,8 @@ export function renderSlide(
   const caption = captionText ? `<p class="story-caption">${e(captionText)}</p>` : '';
   const punchline =
     roastHeadlines[slide.id] || String(slide.caption || slide.title).replace(/\.$/, '');
-  const note = slide.note ? `<p class="story-note">${e(slide.note)}</p>` : '';
+  const note =
+    tone === 'friendly' || !slide.note ? '' : `<p class="story-note">${e(slide.note)}</p>`;
   const headingMood =
     tone === 'friendly' &&
     slide.kind !== 'chart' &&
@@ -626,7 +628,7 @@ export function renderSlide(
   const body =
     tone === 'sharp'
       ? `<div class="roast-lead">${title}<h2 class="roast-headline">${e(punchline)}</h2><div class="roast-emoji" aria-hidden="true">${emoji}</div></div><div class="story-content">${content}${dense || slide.kind === 'overview' || slide.id.startsWith('vocab-') ? caption : ''}</div>${note}`
-      : `${title || headingMood || caption ? `<div class="story-heading">${title}${headingMood}${caption}</div>` : ''}<div class="story-content">${content}</div>${note}`;
+      : `${title || headingMood || caption ? `<div class="story-heading">${title}${slide.id === 'days' ? `${caption}${headingMood}` : `${headingMood}${caption}`}</div>` : ''}<div class="story-content">${content}</div>${note}`;
 
   const ariaLabel = summaryOverview ? 'Обзор чата' : slide.title;
   return `<article class="story story-${e(slide.kind)} story-${e(slide.id)} tone-${tone} palette-${Number(slide.palette) % 4 || 0}" aria-label="${e(ariaLabel)}">${body}<footer class="story-footer"><span>${e(chatName)}</span><span>${number} / ${total}</span></footer></article>`;

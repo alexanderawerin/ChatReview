@@ -2167,6 +2167,20 @@ body:has(#results:not([hidden])) :is(#status, #error, #download-result) {
   order: 3;
   margin-top: 0.8cqw;
 }
+.story.tone-friendly.story-award .friendly-award-body h3 {
+  order: 1;
+  margin: 0 0 0.8cqw;
+}
+.story.tone-friendly.story-award .friendly-award-body .big-number {
+  order: 2;
+}
+.story.tone-friendly.story-award .friendly-award-body .unit {
+  order: 3;
+}
+.story.tone-friendly.story-reactions .row-label {
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  font-size: 1.1em;
+}
 .story .mood-emoji {
   position: static;
   font-size: 5cqw;
