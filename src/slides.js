@@ -6,6 +6,18 @@ export const escapeHtml = (value) =>
   );
 export const formatNumber = (value) => new Intl.NumberFormat('ru-RU').format(value);
 
+const dayFormat = new Intl.DateTimeFormat('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+export const formatDay = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const date = new Date(`${value}T12:00:00Z`);
+  return Number.isNaN(date.valueOf()) ? value : dayFormat.format(date).replace(/ г\.$/, '');
+};
+
 const pluralRules = new Intl.PluralRules('ru-RU');
 const countLabel = (value, one, few, many) =>
   `${formatNumber(value)} ${{ one, few, many }[pluralRules.select(value)] || many}`;
@@ -15,17 +27,17 @@ const awards = [
     'reactionsGiven',
     ['Отданные реакции', 'Группа поддержки', 'Лайк за лайком'],
     [
-      'Доступные реакции из списка recent; он может быть неполным.',
-      'Всегда поддержит разговор реакцией.',
+      'Количество отданных реакций по участникам.',
+      'Сердечки сами себя не поставят.',
       'Кнопка сердечка уже стёрлась.',
     ],
-    'доступных реакций',
+    'реакций',
   ],
   [
     'conversationEnds',
     ['Последнее слово перед паузой', 'На этой ноте — всё', 'И чат замолчал'],
     [
-      'После сообщения была пауза от 30 минут. Причину это не объясняет.',
+      'Сообщения, после которых наступила пауза.',
       'Иногда разговору нужна пауза.',
       'После этих слов — минимум полчаса тишины.',
     ],
@@ -36,7 +48,7 @@ const awards = [
     ['Самая длинная серия', 'Монолог года', 'Микрофон не отдаёт'],
     [
       'Сообщений подряд от одного участника.',
-      'Когда чат — это личный подкаст.',
+      'Подкаст для своих. Подписка уже оформлена.',
       'Собеседники в этом подкасте не предусмотрены.',
     ],
     'сообщений подряд',
@@ -45,8 +57,8 @@ const awards = [
     'messages',
     ['Больше всего сообщений', 'Голос чата', 'Клавиатура без выходных'],
     [
-      'Самый активный участник.',
-      'Всегда есть что добавить.',
+      'Количество отправленных сообщений.',
+      'Кажется, мы ещё не всё обсудили.',
       'Чат ещё не прочитал. Уже пришло новое.',
     ],
     'сообщений',
@@ -71,7 +83,7 @@ const awards = [
     'night',
     ['Ночная активность', 'Ночная смена', 'Режим сна: никогда'],
     [
-      'Сообщения с 23:00 до 04:59.',
+      'Количество сообщений в ночные часы.',
       'Кто-то держит чат открытым до утра.',
       'Пока все спят, этот человек печатает.',
     ],
@@ -80,7 +92,11 @@ const awards = [
   [
     'morning',
     ['Ранняя активность', 'Первый на связи', 'Будильник с клавиатурой'],
-    ['Сообщения с 05:00 до 07:59.', 'Доброе утро начинается здесь.', 'Ещё даже кофе не включился.'],
+    [
+      'Количество сообщений в ранние утренние часы.',
+      'Доброе утро начинается здесь.',
+      'Ещё даже кофе не включился.',
+    ],
     'утренних сообщений',
   ],
   [
@@ -127,16 +143,20 @@ const awards = [
     'caps',
     ['Сообщения заглавными', 'Громко и ясно', 'CAPS LOCK ЗАЛИП'],
     [
-      'Не менее 70% букв — заглавные.',
+      'Сообщения с преобладанием заглавных букв.',
       'Чтобы точно никто не пропустил.',
       'Мы слышим. Даже без звука.',
     ],
-    'громких сообщений',
+    'сообщений заглавными',
   ],
   [
     'questions',
     ['Больше всего вопросов', 'А можно ещё вопрос?', 'Следственный комитет чата'],
-    ['Сообщения с вопросом.', 'Любопытство двигает разговор.', 'Просто ответить уже недостаточно.'],
+    [
+      'Сообщения с вопросом.',
+      'Последний вопрос. Ну, почти последний.',
+      'Просто ответить уже недостаточно.',
+    ],
     'вопросов',
   ],
   [
@@ -206,7 +226,7 @@ const awards = [
     ['Средняя длина сообщения', 'Есть что рассказать', 'Роман в сообщениях'],
     [
       'Среднее количество символов.',
-      'Мысль заслуживает места.',
+      'У этой мысли есть предисловие.',
       'Краткое содержание будет отдельным сообщением.',
     ],
     'символов в среднем',
@@ -234,12 +254,28 @@ export function buildSlides(
       value: winner[key],
       unit,
       caption: captions[index],
+      note: ['reactionsGiven', 'gratitudeGiven', 'gratitudeReceived'].includes(key)
+        ? 'Учтены реакции с известным отправителем. Данные могут быть неполными'
+        : key === 'conversationEnds'
+          ? 'Пауза от 30 минут после сообщения; причина неизвестна'
+          : key === 'night'
+            ? 'С 23:00 до 04:59 · время из экспорта'
+            : key === 'morning'
+              ? 'С 05:00 до 07:59 · время из экспорта'
+              : key === 'caps'
+                ? 'Не менее 70% букв — заглавные'
+                : key === 'short'
+                  ? 'До трёх слов и меньше 20 символов'
+                  : key === 'silenceBreaks'
+                    ? 'Первое сообщение после паузы от двух часов'
+                    : '',
       rows: people.slice(1, 4).map((a) => ({ name: a.name, count: a[key] })),
     });
   }
   const mascotIndex = slides.findIndex((slide) => slide.id === 'maxStreak');
   if (mascotIndex > 0) slides.unshift(...slides.splice(mascotIndex, 1));
-  slides.splice(Math.min(1, slides.length), 0, {
+  // The overview is the entry point: establish the whole chat before the first nomination.
+  slides.splice(0, 0, {
     id: 'overview',
     kind: 'overview',
     title: ['Ваш чат в цифрах', 'Вот так поговорили', 'Масштаб катастрофы'][index],
@@ -257,23 +293,38 @@ export function buildSlides(
     files: 'Файлы',
     text: 'Текст',
   };
+  const mediaIcons = {
+    photos: '📷',
+    videos: '🎬',
+    stickers: '🎭',
+    voice: '🎧',
+    gifs: '🎞️',
+    files: '📎',
+    text: '💬',
+  };
   const mediaRows = Object.entries(stats.media)
     .filter(([, count]) => count > 0)
-    .map(([key, count]) => ({ name: mediaNames[key], count }))
+    .map(([key, count]) => ({ name: mediaNames[key], count, icon: mediaIcons[key] }))
     .sort((a, b) => b.count - a.count);
   if (mediaRows.length)
     slides.push({
       id: 'media',
       kind: 'ranking',
-      title: 'Из чего состоит разговор',
+      title: ['Форматы сообщений', 'Всё, что мы принесли в чат', 'Мультимедийный завал'][index],
       rows: mediaRows.slice(0, 5),
-      caption: `Любимый формат: ${mediaRows[0].name.toLowerCase()}.`,
+      caption: [
+        `Наиболее частый формат: ${mediaRows[0].name.toLowerCase()}`,
+        'У нас с собой и картинки, и поговорить',
+        'Всё в чат. Разбираться будут потом',
+      ][index],
     });
   if (stats.weekdays.some(Boolean))
     slides.push({
       id: 'weekdays',
       kind: 'chart',
-      title: 'Ритм недели',
+      title: ['Сообщения по дням недели', 'У нашей недели свой ритм', 'Неделя в уведомлениях'][
+        index
+      ],
       rows: [1, 2, 3, 4, 5, 6, 0].map((day) => ({
         name: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'][day],
         count: stats.weekdays[day],
@@ -288,9 +339,13 @@ export function buildSlides(
       [
         'vocab-min',
         vocabulary[0],
-        ['Компактный словарь', 'Есть любимые слова', 'Словарь на минималках'],
+        ['Меньше разных слов на сообщение', 'Есть любимые слова', 'Словарь на минималках'],
       ],
-      ['vocab-max', vocabulary.at(-1), ['Разнообразие слов', 'Мастер слова', 'Ходячий словарь']],
+      [
+        'vocab-max',
+        vocabulary.at(-1),
+        ['Больше разных слов на сообщение', 'Мастер слова', 'Ходячий словарь'],
+      ],
     ])
       slides.push({
         id,
@@ -299,7 +354,13 @@ export function buildSlides(
         name: author.name,
         value: author.uniqueWords,
         unit: 'разных слов',
-        caption: `На ${formatNumber(author.messages)} сообщений. Сравниваем участников с 50+ сообщениями.`,
+        caption:
+          index === 0
+            ? 'Разные слова относительно числа сообщений'
+            : id === 'vocab-min'
+              ? 'Любимые слова всегда под рукой'
+              : 'Для каждой мысли найдётся своё слово',
+        note: `На ${formatNumber(author.messages)} сообщений · сравнение среди участников с 50+ сообщениями`,
       });
   if (stats.words.length)
     slides.push({
@@ -307,15 +368,26 @@ export function buildSlides(
       kind: 'words',
       title: ['Частые слова', 'Наш общий словарь', 'Опять за своё'][index],
       rows: stats.words.slice(0, 8),
-      caption: 'Без служебных слов, ссылок и упоминаний.',
+      caption: [
+        'Частота употребления слов',
+        'Наш маленький разговорник. Издание для своих',
+        'Да мы с первого раза поняли',
+      ][index],
+      note: 'Без служебных слов, ссылок и упоминаний',
     });
   if (stats.reactions.length)
     slides.push({
       id: 'reactions',
       kind: 'ranking',
-      title: 'На языке реакций',
+      title: ['Распределение реакций', 'Когда всё понятно без слов', 'Разговор большим пальцем'][
+        index
+      ],
       rows: stats.reactions.slice(0, 5),
-      caption: 'Так мы отвечаем, когда слов не нужно.',
+      caption: [
+        'Количество реакций каждого типа',
+        'Маленькие значки, много чувств',
+        'Зачем слова, если палец уже обучен',
+      ][index],
     });
   if (stats.hours.some(Boolean))
     slides.push({
@@ -329,9 +401,17 @@ export function buildSlides(
     slides.push({
       id: 'days',
       kind: 'ranking',
-      title: 'Самые разговорчивые дни',
-      rows: stats.topDays.slice(0, 5),
-      caption: 'Дни, когда разговор не заканчивался.',
+      title: [
+        'Дни с наибольшим числом сообщений',
+        'Нам было о чём поговорить',
+        'Дни информационного прорыва',
+      ][index],
+      rows: stats.topDays.slice(0, 5).map((row) => ({ ...row, name: formatDay(row.name) })),
+      caption: [
+        'Количество сообщений за календарный день',
+        'Кажется, в эти дни мы особенно соскучились',
+        'Кнопку «отправить» явно заело',
+      ][index],
     });
   if (stats.longest.length)
     slides.push({
@@ -346,7 +426,11 @@ export function buildSlides(
     slides.push({
       id: 'mostReacted',
       kind: 'quote',
-      title: 'Сообщение, которое заметили',
+      title: [
+        'Сообщение с наибольшим числом реакций',
+        'Собрало весь чат',
+        'Минута славы в переписке',
+      ][index],
       name: stats.mostReacted.name,
       text: stats.mostReacted.text || 'Медиа без подписи',
       caption: `${formatNumber(stats.mostReacted.count)} реакций · показано начало сообщения`,
@@ -381,7 +465,10 @@ export function buildSlides(
   }));
 }
 
-const moodEmoji = {
+const friendlyEmoji = {
+  conversationEnds: '🌙',
+  'vocab-min': '🧸',
+  'vocab-max': '✨',
   maxStreak: '🎙️',
   messages: '💬',
   replies: '🗣️',
@@ -413,60 +500,102 @@ const moodEmoji = {
   media: '🎬',
 };
 
+const roastEmoji = {
+  maxStreak: '🙄',
+  messages: '🥵',
+  replies: '🍿',
+  reactionsGiven: '🤡',
+  reactionsReceived: '💅',
+  conversationEnds: '💀',
+  night: '🧟',
+  morning: '😵‍💫',
+  gratitudeGiven: '🫠',
+  gratitudeReceived: '🤦',
+  stickers: '🥴',
+  voice: '😩',
+  caps: '🤬',
+  questions: '🧐',
+  links: '😵',
+  forwards: '🐒',
+  edits: '🤥',
+  selfReplies: '🤝',
+  silenceBreaks: '🪦',
+  short: '🗿',
+  emojis: '🤪',
+  averageLength: '😮‍💨',
+  overview: '🫣',
+  media: '🗑️',
+  weekdays: '😑',
+  hours: '😫',
+  words: '🦜',
+  reactions: '🤖',
+  days: '🤯',
+  longest: '😴',
+  mostReacted: '👑',
+  'vocab-min': '🧱',
+  'vocab-max': '🤓',
+};
+
+const roastHeadlines = {
+  maxStreak: 'Спасибо. Мы тут просто мебель',
+  messages: 'Клавиатура подала на развод',
+  replies: 'Одно сообщение. И вот уже суд',
+  reactionsGiven: 'Лайкни ещё. Тебя точно заметят',
+  reactionsReceived: 'Эго просит добавки',
+  conversationEnds: 'Поздравляем. Ты выключил людей',
+  night: 'Режим сна? Удалён за ненадобностью',
+  morning: 'Да кто тебя в такую рань просил',
+  gratitudeGiven: 'Спасибо за спасибо за спасибо',
+  gratitudeReceived: 'Всех спас. Зарплата — спасибо',
+  stickers: 'Мыслей нет. Зато кот смешной',
+  voice: 'Подкаст, который никто не заказывал',
+  caps: 'ОРИ ГРОМЧЕ. ИНТЕРНЕТ НЕ СЛЫШИТ',
+  questions: 'Ты общаешься или протокол ведёшь?',
+  links: 'Браузер сдох. Зато мы в курсе',
+  forwards: 'Личное мнение временно недоступно',
+  edits: 'Думать до отправки? Слишком просто',
+  selfReplies: 'Сам себе собеседник. Сам себе фанат',
+  silenceBreaks: 'Чат умер. Но тебе же надо',
+  short: 'Ок. Пон. Разговор года',
+  emojis: 'Алфавит уволен без объяснений',
+  averageLength: 'Война и мир. В поле «сообщение»',
+  overview: 'Столько букв. Вы там живёте?',
+  media: 'Свалка контента. Вход свободный',
+  weekdays: 'Рабочая неделя? Чатовая неделя',
+  hours: 'Выдохни. Уведомление не зарплата',
+  words: 'Новые слова будут или всё?',
+  reactions: 'Общение делегировано пальцу',
+  days: 'В эти дни кнопка «отправить» горела',
+  longest: 'Краткое содержание: мы не осилили',
+  mostReacted: 'Всё, звезда. Можно выдохнуть',
+  'vocab-min': 'Словарь: базовая комплектация',
+  'vocab-max': 'Словарь Ожегова вышел в чат',
+};
+
 export function renderSlide(
   slide,
   { mascotUrl = '', chatName = 'chatreview', number = 1, total = 1 } = {},
 ) {
   const e = escapeHtml;
   const tone = ['friendly', 'sharp'].includes(slide.tone) ? slide.tone : 'summary';
-  const emoji = moodEmoji[slide.id] || (tone === 'sharp' ? '🔥' : '✨');
-  const support = [
-    'reactionsGiven',
-    'reactionsReceived',
-    'gratitudeGiven',
-    'gratitudeReceived',
-    'overview',
-  ];
-  const voice = [
-    'maxStreak',
-    'messages',
-    'replies',
-    'voice',
-    'caps',
-    'questions',
-    'selfReplies',
-    'averageLength',
-  ];
-  const quiet = ['night', 'morning', 'conversationEnds', 'silenceBreaks', 'short'];
+  const emoji =
+    (tone === 'sharp' ? roastEmoji : friendlyEmoji)[slide.id] || (tone === 'sharp' ? '🥴' : '✨');
   const dense = ['ranking', 'words', 'chart', 'quote'].includes(slide.kind);
-  const scene =
-    tone === 'summary' || dense
-      ? 'plain'
-      : tone === 'friendly'
-        ? support.includes(slide.id)
-          ? 'party'
-          : voice.includes(slide.id)
-            ? 'studio'
-            : 'plain'
-        : voice.includes(slide.id)
-          ? 'fire'
-          : quiet.includes(slide.id)
-            ? 'plain'
-            : 'poster';
   if (slide.kind === 'photo')
     return `<article class="story story-photo" aria-label="${e(slide.title)}"><img class="photo" src="${e(slide.image)}" alt="${e(slide.title)}"><div class="photo-credit">${e(slide.name)}</div></article>`;
-  const numberSize = Math.min(
-    slide.kind === 'mascot' ? 27 : slide.kind === 'overview' ? 15 : 17,
-    82 / Math.max(1, formatNumber(slide.value ?? 0).length),
-  );
   const rows = (slide.rows || [])
     .map(
-      (row) => `<li><span>${e(row.name)}</span><strong>${e(formatNumber(row.count))}</strong></li>`,
+      (row) =>
+        `<li>${tone === 'friendly' && row.icon ? `<span class="row-icon" aria-hidden="true">${e(row.icon)}</span>` : ''}<span class="row-label">${e(row.name)}</span><strong>${e(formatNumber(row.count))}</strong></li>`,
     )
     .join('');
+  const mood =
+    tone === 'friendly' && slide.kind !== 'chart'
+      ? `<div class="mood-emoji" aria-hidden="true">${emoji}</div>`
+      : '';
   let content;
-  if (slide.kind === 'photo')
-    content = `<img class="photo" src="${e(slide.image)}" alt="Фотография из чата"><div class="photo-credit">${e(slide.name)}</div>`;
+  if (tone === 'summary' && slide.kind === 'award')
+    content = `<div class="fact-table"><div class="fact-table-labels"><span>Участник</span><span>${e(slide.unit)}</span></div><ul class="slide-ranking"><li class="fact-leader"><span>${e(slide.name)}</span><strong>${e(formatNumber(slide.value))}</strong></li>${rows}</ul></div>`;
   else if (slide.kind === 'quote')
     content = `<blockquote>${e(slide.text)}${slide.text.length >= 220 ? '…' : ''}</blockquote><p class="quote-author">${e(slide.name)}</p>`;
   else if (slide.kind === 'chart') {
@@ -474,17 +603,27 @@ export function renderSlide(
     content = `<div class="chart">${slide.rows.map((row, i) => `<div class="bar-column" title="${e(row.name)}:00 — ${e(row.count)}"><i style="height:${Math.max(1, (row.count / max) * 100)}%"></i><small>${slide.rows.length <= 7 || i % 3 === 0 ? row.name : ''}</small></div>`).join('')}</div>`;
   } else if (slide.kind === 'ranking' || slide.kind === 'words')
     content = `<ul class="slide-ranking ${slide.kind}">${rows}</ul>`;
+  else if (tone === 'friendly')
+    content = `<div class="award-body friendly-award-body">${mood}<div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p><h3 title="${e(slide.name)}">${e(slide.name)}</h3></div>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
   else
-    content = `<div class="award-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number" style="font-size:${numberSize}cqw">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p></div>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
-  const mood =
-    tone === 'summary'
-      ? ''
-      : `<div class="mood-emoji" aria-hidden="true">${tone === 'sharp' ? '😈' : emoji}</div>`;
+    content = `<div class="award-body"><h3 title="${e(slide.name)}">${e(slide.name)}</h3><div class="big-number">${e(formatNumber(slide.value))}</div><p class="unit">${e(slide.unit)}</p>${slide.kind === 'mascot' ? `<img class="mascot" src="${e(mascotUrl)}" alt="Серый кот в солнцезащитных очках"><p class="handwritten">Говорит. И не<br>останавливается.</p>` : `<ul class="runners">${rows}</ul>`}`;
   const title = `<header class="story-header">${e(slide.title)}</header>`;
-  const caption = `<p class="story-caption">${e(slide.caption)}</p>`;
+  const caption = `<p class="story-caption">${e(String(slide.caption || '').replace(/\.$/, ''))}</p>`;
+  const punchline =
+    roastHeadlines[slide.id] || String(slide.caption || slide.title).replace(/\.$/, '');
+  const note = slide.note ? `<p class="story-note">${e(slide.note)}</p>` : '';
+  const headingMood =
+    tone === 'friendly' &&
+    slide.kind !== 'chart' &&
+    slide.kind !== 'award' &&
+    slide.kind !== 'overview' &&
+    slide.id !== 'media'
+      ? mood
+      : '';
   const body =
     tone === 'sharp'
-      ? `${title}${caption}<div class="roast-evidence">${content}</div>${mood}`
-      : `${title}${content}${mood}${caption}`;
-  return `<article class="story story-${e(slide.kind)} tone-${tone} scene-${scene} palette-${Number(slide.palette) % 4 || 0}" aria-label="${e(slide.title)}">${body}<footer class="story-footer"><span>${e(chatName)}</span><span>${number} / ${total}</span></footer></article>`;
+      ? `<div class="roast-lead">${title}<h2 class="roast-headline">${e(punchline)}</h2><div class="roast-emoji" aria-hidden="true">${emoji}</div></div><div class="story-content">${content}${dense || slide.kind === 'overview' || slide.id.startsWith('vocab-') ? caption : ''}</div>${note}`
+      : `<div class="story-heading">${title}${headingMood}${caption}</div><div class="story-content">${content}</div>${note}`;
+
+  return `<article class="story story-${e(slide.kind)} tone-${tone} palette-${Number(slide.palette) % 4 || 0}" aria-label="${e(slide.title)}">${body}<footer class="story-footer"><span>${e(chatName)}</span><span>${number} / ${total}</span></footer></article>`;
 }

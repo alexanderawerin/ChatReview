@@ -71,10 +71,9 @@ function syncControls() {
   $('#file-choice-label').textContent = state.photos ? 'Выбрать папку с фото' : 'Выбрать файл';
 }
 const heroScenes = [
-  { name: 'party', emojis: ['🥱', '😂'] },
-  { name: 'studio', emojis: ['😶', '🤩'] },
-  { name: 'poster', emojis: ['😐', '🤪'] },
-  { name: 'fire', emojis: ['🙄', '😈'] },
+  { name: 'calm', label: 'Спокойно', emojis: ['🥱', '🙂'] },
+  { name: 'friendly', label: 'Дружески', emojis: ['😶', '🤩'] },
+  { name: 'sharp', label: 'Пожёстче', emojis: ['🙄', '😈'] },
 ];
 function renderPreview() {
   state.previewIndex = (state.previewIndex + heroScenes.length) % heroScenes.length;
@@ -83,7 +82,8 @@ function renderPreview() {
   document.querySelectorAll('.headline-emoji').forEach((element, index) => {
     element.textContent = scene.emojis[index];
   });
-  $('#preview-count').textContent = `${state.previewIndex + 1} / ${heroScenes.length}`;
+  $('#preview-count').textContent =
+    `${state.previewIndex + 1} / ${heroScenes.length} · ${scene.label}`;
   $('#open-preview').href = `?preview=${state.previewIndex + 1}`;
 }
 function renderCurrent() {
@@ -302,5 +302,5 @@ if (new URLSearchParams(location.search).has('preview')) {
   const selected = Number(new URLSearchParams(location.search).get('preview'));
   const scene = heroScenes[selected - 1] || heroScenes[0];
   document.querySelector('.page-shell').innerHTML =
-    `<main class="hero scene-preview" data-scene="${scene.name}"><h1>${scene.emojis[1]}</h1><p class="intro">Настроение вашего чата</p><a href="./">На главную</a></main>`;
+    `<main class="hero scene-preview" data-scene="${scene.name}"><h1>${scene.emojis[1]}</h1><p class="intro">${scene.label}</p><a href="./">На главную</a></main>`;
 }

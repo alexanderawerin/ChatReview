@@ -44,3 +44,33 @@ Applied annotation changes: headline lines offset -40/+40px on desktop (16px on 
 Replaced the literal night motif with studio artwork for participation and conversation facts. Reaction and gratitude facts use celebration; friendly participation uses studio and roast participation uses embers. Quiet/time facts and dense rankings, words, charts and quotes remain plain. Other roast awards use the poster. The full mapping and rationale are recorded in design/slide-art-direction.md. Landing carousel now uses celebration, studio, poster and embers. Earlier entries and screenshots document superseded iterations.
 
 Final synthetic browser export matrix passed all six mood/photo combinations: 168 PNG files decoded at 1280 × 720, with full-frame photo coverage checked. No personal file import was performed. All 14 unit tests, lint, formatting and production build passed. Physical iPhone/Safari and the user's own chat review remain unverified.
+
+## 10 September: 24 browser annotations
+
+Landing now has exactly three mood previews, centered headline lines and an expanded scene containing the wordmark, carousel and preview link. Privacy copy changes foreground color with the scene, without a badge. The removed photo helper is absent from HTML; the switch thumb is white in both states.
+
+Replaced the accumulated mood-specific layout rules with shared slide roles and stable name/number sizing. Calm palette is neutral/blue; dark charts and words use pale/lilac foregrounds. Friendly awards are centered, dense slides have no floating emoji, and captions share a row without terminal periods. Roast evidence uses larger artwork-safe insets; results have readable back controls and a dark rail for roast. Dates are localized to Russian day/month/year.
+
+Browser inspection covered awards, dense rankings/words, charts, long quotes and landing/dialog states. A synthetic fixture rendered 90 slides (including long-name and six-digit cases) at three sizes: 1280×720, 1241×806 and 1920×1016, with no content overflow or outer-boundary failures across 270 layouts. Mobile landing was inspected in a 390×844 browser iframe; browser viewport overrides did not reliably resize the existing tabs, so they were reset. No personal export was imported.
+
+All six export combinations passed: 168 PNG decoded at 1280×720, with photo coverage preserved. The final mobile-only type adjustment does not affect these desktop export styles. Unit tests: 15 passed, including localized dates without changing source statistics. Physical TV reading distance and physical iPhone/Safari remain unverified.
+
+## Flat colour and typography revision
+
+Removed background illustrations and scene-selection logic from both expressive moods and their landing previews. Friendly retains the four pastel palettes and centered emoji awards. Sharp now uses a consistent nomination/content/punchline grid, large numeric emphasis, aligned participant rows and four dark palettes with contrasting accents. Overview uses the full content width. Retired image assets remain in Git but are absent from the production bundle.
+
+Inspected friendly awards, sharp long-name awards and charts in the browser. The 90-slide fixture passes 270 layout checks across export, desktop and Full HD dimensions. All six export combinations passed again: 168 PNG at 1280×720, with photo coverage preserved. Lint, 15 unit tests, formatting and production build passed. Physical television viewing remains unverified.
+
+## Distinct roast composition
+
+The user rejected the shared calm/roast structure. Sharp now has a dedicated left punchline/emoji column and right evidence column, with short metric-specific headlines and saturated lime, berry, green and violet palettes. Dense slides use the same split architecture without decorative overlap. Calm captions are left aligned. No illustrated backgrounds were restored.
+
+Inspected awards with long names and the dense word list; 270 synthetic geometry checks pass, including the new headline and emoji regions. All six export combinations pass again (168 PNG); 15 unit tests, lint, formatting and build pass. User-chat import and physical-TV verification were not performed.
+
+## 13 September: three distinct voices and equal facts
+
+Reworked the shared reaction example and all slide templates. Calm awards now use a neutral participant/value table, with factual heading and explanation grouped directly above it. Friendly now opens with a centered overview, and its award card reads emoji, value/unit, then participant name while retaining all participants. Media rows carry their own meaningful icons; the words emoji sits below its heading; other dense slides keep their emoji in the heading zone. Sharp uses rewritten sarcastic headlines and a distinct emoji set, with smaller evidence numbers and no vertical divider.
+
+Source facts, participant selection and applicable coverage/threshold notes remain consistent across moods. Plain-language reaction coverage replaces the `recent` field reference. Literal source reaction symbols and quotes are preserved independently of decorative mood emoji. The synthetic comparison at `test-results/mood-comparison.html` uses the supplied example: 730, 564, 463 and 452 reactions.
+
+Visual checks covered the three reaction variants, centered overview, reordered award card, media row icons, words heading emoji, dense words, long names and a long roast quote. Increasing the friendly name initially broke a long surname onto a third line; corrected it before final export. An expanded fixture covers 108 slides at 1280×720, 1241×806 and 1920×1016: 324 layouts pass bounds, content overflow, name-line and friendly participant/emoji visibility checks. All six final export combinations pass: 168 decoded PNG at 1280×720, including full-frame photo checks. Seventeen unit tests, lint, formatting, build and diff checks pass. Physical TV viewing and user visual acceptance remain unverified.

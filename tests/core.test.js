@@ -8,7 +8,7 @@ import {
   loadPhotoUrls,
   releasePhotoUrls,
 } from '../src/importer.js';
-import { buildSlides, renderSlide } from '../src/slides.js';
+import { buildSlides, renderSlide, formatDay, escapeHtml } from '../src/slides.js';
 import { demoChat } from '../src/demo.js';
 const msg = (id, from, extra = {}) => ({
   id,
@@ -217,8 +217,9 @@ test('mood selects distinct composition while preserving award facts', () => {
   const rendered = versions.map((s) => renderSlide(s));
   assert.ok(!rendered[0].includes('mood-emoji'));
   assert.ok(rendered[1].includes('mood-emoji'));
-  assert.ok(rendered[2].includes('roast-evidence'));
-  assert.ok(rendered[2].indexOf('story-caption') < rendered[2].indexOf('award-body'));
+  assert.ok(rendered[2].includes('roast-emoji'));
+  assert.ok(rendered[2].includes('roast-headline'));
+  assert.ok(rendered[2].indexOf('roast-headline') < rendered[2].indexOf('award-body'));
 });
 test('photo slide contains only full-image surface and escaped author credit', () => {
   const html = renderSlide({
@@ -232,4 +233,63 @@ test('photo slide contains only full-image surface and escaped author credit', (
   assert.ok(!html.includes('story-header'));
   assert.ok(!html.includes('story-caption'));
   assert.ok(!html.includes('story-footer'));
+});
+
+test('day labels use Russian calendar dates independently of the viewer timezone', () => {
+  assert.equal(formatDay('2026-09-10'), '10 сентября 2026');
+  assert.equal(formatDay('2025-07-02'), '2 июля 2025');
+  assert.equal(formatDay('2026-01-01'), '1 января 2026');
+  assert.equal(formatDay('unknown'), 'unknown');
+  const stats = analyzeChat(demoChat());
+  const original = structuredClone(stats.topDays);
+  const days = buildSlides(stats, { tone: 'summary' }).find((slide) => slide.id === 'days');
+  assert.ok(days.rows.every((row) => /^\d{1,2} [а-я]+ \d{4}$/.test(row.name)));
+  assert.deepEqual(stats.topDays, original);
+});
+
+test('every factual slide keeps participants and limitations across all moods', () => {
+  const stats = analyzeChat(demoChat());
+  stats.authors.forEach((author, i) => {
+    author.messages = 65 + i;
+    author.uniqueWords = 25 + i * 12;
+    for (const key of ['morning', 'voice', 'stickers', 'forwards']) author[key] = 12 - i;
+  });
+  const versions = ['summary', 'friendly', 'sharp'].map((tone) => buildSlides(stats, { tone }));
+  for (const base of versions[0]) {
+    const slides = versions.map((list) => list.find((s) => s.id === base.id));
+    for (const slide of slides) {
+      for (const field of ['name', 'value', 'unit', 'rows', 'note']) {
+        assert.deepEqual(slide[field], base[field], `${base.id}: ${field}`);
+      }
+      const html = renderSlide(slide);
+      for (const row of slide.rows || []) assert.ok(html.includes(escapeHtml(row.name)));
+      if (slide.note) assert.ok(html.includes(escapeHtml(slide.note)));
+    }
+    const html = slides.map((s) => renderSlide(s));
+    assert.ok(!/class="(?:mood|roast)-emoji"/.test(html[0]));
+    if (base.kind !== 'chart') {
+      const friendly = html[1].match(/class="mood-emoji"[^>]*>([^<]+)/)?.[1];
+      const sharp = html[2].match(/class="roast-emoji"[^>]*>([^<]+)/)?.[1];
+      if (base.id === 'media') assert.match(html[1], /class="row-icon"/);
+      else assert.ok(friendly, `Missing friendly emoji on ${base.id}`);
+      assert.ok(sharp, `Missing roast emoji on ${base.id}`);
+      assert.notEqual(friendly, sharp, `Shared mood emoji on ${base.id}`);
+    }
+    if (base.kind === 'award') assert.ok(html[0].includes('fact-table'));
+  }
+});
+
+test('friendly flow opens with the overview and keeps its card order intentional', () => {
+  const stats = analyzeChat(demoChat());
+  const slides = buildSlides(stats, { tone: 'friendly' });
+  assert.equal(slides[0].id, 'overview');
+  const award = renderSlide(slides.find((slide) => slide.id === 'maxStreak'));
+  assert.ok(award.indexOf('mood-emoji') < award.indexOf('big-number'));
+  assert.ok(award.indexOf('big-number') < award.indexOf('class="unit"'));
+  assert.ok(award.indexOf('class="unit"') < award.indexOf('<h3'));
+  const words = renderSlide(slides.find((slide) => slide.id === 'words'));
+  assert.ok(words.indexOf('mood-emoji') < words.indexOf('story-content'));
+  const media = renderSlide(slides.find((slide) => slide.id === 'media'));
+  assert.ok(!media.includes('mood-emoji'));
+  assert.match(media, /class="row-icon"/);
 });
