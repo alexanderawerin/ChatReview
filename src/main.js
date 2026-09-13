@@ -11,7 +11,6 @@ import close from '@phosphor-icons/core/assets/regular/x.svg?raw';
 import { analyzeChat } from './analyzer.js';
 import { readExport, loadPhotoUrls, releasePhotoUrls, droppedFiles } from './importer.js';
 import { buildSlides, renderSlide } from './slides.js';
-import external from '@phosphor-icons/core/assets/regular/browsers.svg?raw';
 import help from '@phosphor-icons/core/assets/regular/question.svg?raw';
 
 const $ = (selector) => document.querySelector(selector);
@@ -23,7 +22,6 @@ const icons = {
   download,
   plus,
   close,
-  external,
   help,
 };
 for (const element of document.querySelectorAll('[data-icon]')) {
@@ -84,7 +82,6 @@ function renderPreview() {
   });
   $('#preview-count').textContent =
     `${state.previewIndex + 1} / ${heroScenes.length} · ${scene.label}`;
-  $('#open-preview').href = `?preview=${state.previewIndex + 1}`;
 }
 function renderCurrent() {
   $('#slide-view').innerHTML = renderSlide(state.slides[state.index], {

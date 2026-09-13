@@ -2422,6 +2422,36 @@ body:has(#results:not([hidden])) :is(#status, #error, #download-result) {
   margin-left: auto;
   border: 0;
 }
+.hero-content > .site-footer {
+  width: 100%;
+  margin: 36px 0 0;
+  padding: 0;
+  border-top: 0;
+  gap: 28px;
+  text-align: left;
+}
+.hero-content > .site-footer h2,
+.hero-content > .site-footer p,
+.hero-content > .site-footer .step-number {
+  text-align: left;
+}
+.landing-credit {
+  margin-left: auto;
+  color: inherit;
+  font-size: inherit;
+  white-space: nowrap;
+}
+.landing-credit a {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  text-underline-offset: 2px;
+}
+.hero .landing-preview .landing-credit a {
+  margin: 0;
+  padding: 0;
+}
 .scene-preview {
   min-height: 90dvh;
 }
@@ -2448,6 +2478,11 @@ body:has(#results:not([hidden])) :is(#status, #error, #download-result) {
   }
   .hero .landing-preview a {
     padding-left: 4px;
+  }
+  .hero-content > .site-footer {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-top: 32px;
   }
 }
 

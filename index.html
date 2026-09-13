@@ -33,20 +33,54 @@
               Откройте забавные привычки, любимые реакции<br class="desktop-break" />
               и неожиданные таланты вашего чата.
             </p>
+            <section class="site-footer" aria-label="Три шага к разбору">
+              <div>
+                <span class="step-number">01</span>
+                <details class="export-help">
+                  <summary>
+                    Экспортируйте чат
+                    <span
+                      class="help-tip"
+                      tabindex="0"
+                      aria-label="Как экспортировать чат"
+                      aria-describedby="export-tooltip"
+                      ><span data-icon="help"></span
+                      ><span class="tooltip" id="export-tooltip" role="tooltip"
+                        >В меню чата Telegram Desktop выберите «Экспорт истории чата», затем
+                        JSON.</span
+                      ></span
+                    >
+                  </summary>
+                  <ol>
+                    <li>Откройте чат в Telegram Desktop на компьютере.</li>
+                    <li>В меню чата выберите «Экспорт истории чата».</li>
+                    <li>Выберите JSON и сохраните экспорт.</li>
+                  </ol>
+                </details>
+                <p>
+                  <a href="https://desktop.telegram.org/" target="_blank" rel="noopener noreferrer"
+                    >Telegram Desktop</a
+                  >
+                  · формат JSON
+                </p>
+              </div>
+              <div>
+                <span class="step-number">02</span>
+                <h2>Загрузите result.json</h2>
+                <p>Файл из папки экспорта</p>
+              </div>
+              <div>
+                <span class="step-number">03</span>
+                <h2>Сохраните слайды</h2>
+                <p>В PNG или ZIP, а ещё — просмотр как сайта</p>
+              </div>
+            </section>
             <div class="landing-actions">
               <button class="primary upload-button" id="upload-button">
                 <span data-icon="upload"></span>Загрузить чат
               </button>
             </div>
-            <p class="privacy-note">
-              Всё обрабатывается на вашем устройстве.
-              <span class="privacy-credit"
-                >© 2026
-                <a href="https://netdesigner.ru" target="_blank" rel="noopener noreferrer"
-                  >Александр Аверин</a
-                ></span
-              >
-            </p>
+            <p class="privacy-note">Всё обрабатывается на вашем устройстве.</p>
           </div>
           <nav class="landing-preview" aria-label="Превью слайдов">
             <button id="preview-prev" aria-label="Предыдущий пример" class="icon-button">
@@ -56,51 +90,13 @@
             <button id="preview-next" aria-label="Следующий пример" class="icon-button">
               <span data-icon="right"></span>
             </button>
-            <a id="open-preview" href="?preview=1" target="_blank" rel="noopener"
-              >Открыть превью <span data-icon="external"></span
-            ></a>
+            <span class="landing-credit"
+              >© 2026
+              <a href="https://netdesigner.ru" target="_blank" rel="noopener noreferrer"
+                >Александр Аверин</a
+              ></span
+            >
           </nav>
-        </section>
-        <section class="site-footer" aria-label="Три шага к разбору">
-          <div>
-            <span class="step-number">01</span>
-            <details class="export-help">
-              <summary>
-                Экспортируйте чат
-                <span
-                  class="help-tip"
-                  tabindex="0"
-                  aria-label="Как экспортировать чат"
-                  aria-describedby="export-tooltip"
-                  ><span data-icon="help"></span
-                  ><span class="tooltip" id="export-tooltip" role="tooltip"
-                    >В меню чата Telegram Desktop выберите «Экспорт истории чата», затем JSON.</span
-                  ></span
-                >
-              </summary>
-              <ol>
-                <li>Откройте чат в Telegram Desktop на компьютере.</li>
-                <li>В меню чата выберите «Экспорт истории чата».</li>
-                <li>Выберите JSON и сохраните экспорт.</li>
-              </ol>
-            </details>
-            <p>
-              <a href="https://desktop.telegram.org/" target="_blank" rel="noopener noreferrer"
-                >Telegram Desktop</a
-              >
-              · формат JSON
-            </p>
-          </div>
-          <div>
-            <span class="step-number">02</span>
-            <h2>Загрузите result.json</h2>
-            <p>Файл из папки экспорта</p>
-          </div>
-          <div>
-            <span class="step-number">03</span>
-            <h2>Сохраните слайды</h2>
-            <p>В PNG или ZIP, а ещё — просмотр как сайта</p>
-          </div>
         </section>
       </main>
       <dialog id="settings-dialog" class="settings-modal">
