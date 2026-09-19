@@ -3184,3 +3184,142 @@ body:has(#results:not([hidden])) :is(#status, #error, #download-result) {
     width: 100%;
   }
 }
+
+/* Motion stays on viewer/UI surfaces; exported .story markup remains static. */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --motion-feedback: 160ms;
+  --motion-dialog: 250ms;
+}
+#results #slide-view {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+#results #slide-view > .slide-outgoing {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+button {
+  transition:
+    opacity var(--motion-feedback) ease,
+    transform var(--motion-feedback) var(--ease-out);
+}
+html[data-input='pointer'] button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.switch::after {
+  transition: transform var(--motion-feedback) var(--ease-out);
+}
+html[data-input='keyboard'] *,
+html[data-input='keyboard'] *::before,
+html[data-input='keyboard'] *::after {
+  transition-duration: 0s !important;
+}
+/* Suppress old hover translations on touch and keyboard focus. */
+.hero .upload-button:hover,
+.hero .landing-preview .icon-button:hover,
+#results .viewer-nav .icon-button:hover,
+#results .viewer-nav .icon-button:focus-visible {
+  transform: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  html[data-input='pointer']
+    :is(
+      .hero .upload-button,
+      .hero .landing-preview .icon-button,
+      #results .viewer-nav .icon-button
+    ):hover:not(:active) {
+    transform: translateY(-1px);
+  }
+}
+@supports (transition-behavior: allow-discrete) {
+  .settings-modal {
+    opacity: 0;
+    transform: scale(0.96);
+    transition:
+      opacity var(--motion-dialog) var(--ease-out),
+      transform var(--motion-dialog) var(--ease-out),
+      display var(--motion-dialog) allow-discrete,
+      overlay var(--motion-dialog) allow-discrete;
+  }
+  .settings-modal[open] {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .settings-modal::backdrop {
+    opacity: 0;
+    transition:
+      opacity var(--motion-dialog) var(--ease-out),
+      display var(--motion-dialog) allow-discrete,
+      overlay var(--motion-dialog) allow-discrete;
+  }
+  .settings-modal[open]::backdrop {
+    opacity: 1;
+  }
+  @starting-style {
+    .settings-modal[open] {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    .settings-modal[open]::backdrop {
+      opacity: 0;
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: opacity 100ms ease !important;
+  }
+  .settings-modal,
+  .settings-modal[open] {
+    transform: none;
+    transition:
+      opacity 100ms ease,
+      display 100ms allow-discrete,
+      overlay 100ms allow-discrete !important;
+  }
+  .settings-modal::backdrop {
+    transition:
+      opacity 100ms ease,
+      display 100ms allow-discrete,
+      overlay 100ms allow-discrete !important;
+  }
+  html[data-input='pointer'] button:is(:hover, :active) {
+    transform: none !important;
+  }
+  @starting-style {
+    .settings-modal[open] {
+      transform: none;
+    }
+  }
+}
+/* Keyboard always wins over the reduced-motion fade as well. */
+html[data-input='keyboard'] .settings-modal,
+html[data-input='keyboard'] .settings-modal::backdrop {
+  transition: none !important;
+}
+
+/* Landing mood changes share one timing; repeated clicks retarget the palette. */
+.hero[data-scene] {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
+}
+.hero .upload-button {
+  transition:
+    background-color 200ms ease,
+    transform var(--motion-feedback) var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero[data-scene] {
+    transition:
+      background-color 100ms ease,
+      color 100ms ease !important;
+  }
+}
+html[data-input='keyboard'] .hero[data-scene] {
+  transition: none !important;
+}

@@ -31,3 +31,7 @@
 - Friendly and roast need distinct emoji choices as well as distinct copy and composition. Choose by meaning: warm/supportive cues such as 🫶, 🥹 and ✨ for friendly; mocking, incredulous or overwhelmed reactions such as 🤡, 💀, 🥴, 🙄 and 🤦 for roast. Do not reuse one emoji mapping across these two moods or put the same generic emoji on every slide.
 - Keep the source facts consistent across moods. These tone rules are design requirements; passing technical checks does not establish that the resulting design has been accepted.
 - Friendly result flow starts with the general overview. Center the overview content. On friendly award cards, place the emoji first, then the value and unit, then the participant name. Media rankings use one meaningful icon per row; the words slide places its emoji below the heading instead of floating beside the list.
+
+# Slide motion
+
+- Animate slide navigation from both pointer buttons and keyboard activation. Do not infer keyboard input from click event.detail: browser or assistive activation can also report zero. Keep reduced-motion transitions gentle and held-key repeat immediate.

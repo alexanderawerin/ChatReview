@@ -13,6 +13,37 @@ import { buildSlides, renderSlide } from './slides.js';
 import help from '@phosphor-icons/core/assets/regular/question.svg?raw';
 
 const $ = (selector) => document.querySelector(selector);
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let slideTransition;
+let previewAnimations = [];
+function cancelPreviewAnimations() {
+  for (const animation of previewAnimations) animation.cancel();
+  previewAnimations = [];
+}
+// Input modality also covers native dialog Escape and keyboard button activation.
+document.addEventListener(
+  'keydown',
+  (event) => {
+    document.documentElement.dataset.input = 'keyboard';
+    const slideNavigation = ['ArrowLeft', 'ArrowRight', 'Enter', ' '].includes(event.key);
+    if (!slideNavigation) {
+      cancelPreviewAnimations();
+      slideTransition?.cancel();
+    }
+  },
+  true,
+);
+document.addEventListener(
+  'pointerdown',
+  () => {
+    document.documentElement.dataset.input = 'pointer';
+  },
+  true,
+);
+reducedMotion.addEventListener('change', () => {
+  slideTransition?.cancel();
+  cancelPreviewAnimations();
+});
 const icons = {
   arrow,
   left,
@@ -71,25 +102,94 @@ const heroScenes = [
   { name: 'friendly', label: 'Дружески', emojis: ['😶', '🤩'] },
   { name: 'sharp', label: 'Пожёстче', emojis: ['🙄', '😈'] },
 ];
-function renderPreview() {
+function renderPreview(direction = 0) {
+  const interrupted = previewAnimations.some((animation) => animation.playState === 'running');
+  cancelPreviewAnimations();
   state.previewIndex = (state.previewIndex + heroScenes.length) % heroScenes.length;
   const scene = heroScenes[state.previewIndex];
   $('.hero').dataset.scene = scene.name;
   document.querySelectorAll('.headline-emoji').forEach((element, index) => {
     element.textContent = scene.emojis[index];
+    if (direction && !interrupted && element.animate) {
+      previewAnimations.push(
+        element.animate(
+          [
+            {
+              opacity: 0,
+              transform: reducedMotion.matches ? 'none' : `translateX(${direction * 15}%)`,
+            },
+            { opacity: 1, transform: 'none' },
+          ],
+          {
+            duration: reducedMotion.matches ? 100 : 200,
+            easing: getComputedStyle(document.documentElement)
+              .getPropertyValue('--ease-out')
+              .trim(),
+          },
+        ),
+      );
+    }
   });
   $('#preview-count .preview-position').textContent =
     `${state.previewIndex + 1} / ${heroScenes.length}`;
   $('#preview-count .preview-scene').textContent = ` · ${scene.label}`;
 }
-function renderCurrent() {
-  $('#slide-view').innerHTML = renderSlide(state.slides[state.index], {
+function renderCurrent(direction = 0) {
+  const view = $('#slide-view');
+  // Repeated input settles immediately on the requested slide, never queues decks.
+  const interrupted = Boolean(slideTransition);
+  slideTransition?.cancel();
+  const outgoing = view.firstElementChild;
+  if (outgoing) outgoing.remove();
+  view.innerHTML = renderSlide(state.slides[state.index], {
     mascotUrl,
     chatName: state.stats.chatName,
     number: state.index + 1,
     total: state.slides.length,
   });
   $('#slide-count').value = `${state.index + 1} / ${state.slides.length}`;
+  const incoming = view.firstElementChild;
+  if (!direction || interrupted || !outgoing || !incoming.animate) return;
+
+  const gentle = reducedMotion.matches;
+  const offset = gentle ? 0 : direction * 1.5;
+  const timing = {
+    duration: gentle ? 100 : 200,
+    easing: getComputedStyle(document.documentElement).getPropertyValue('--ease-out').trim(),
+  };
+  // Retain the actual previous slide (including decoded photos), hidden from AT.
+  outgoing.classList.add('slide-outgoing');
+  outgoing.setAttribute('aria-hidden', 'true');
+  outgoing.inert = true;
+  view.append(outgoing);
+  const entering = incoming.animate(
+    [
+      { opacity: 0, transform: `translateX(${offset}%)` },
+      { opacity: 1, transform: 'none' },
+    ],
+    timing,
+  );
+  const leaving = outgoing.animate(
+    [
+      { opacity: 1, transform: 'none' },
+      { opacity: 0, transform: `translateX(${-offset}%)` },
+    ],
+    timing,
+  );
+  const transition = {
+    cancel() {
+      entering.cancel();
+      leaving.cancel();
+      outgoing.remove();
+      if (slideTransition === transition) slideTransition = null;
+    },
+  };
+  slideTransition = transition;
+  // A stale completion must never remove a newer slide or cancel its animation.
+  Promise.all([entering.finished, leaving.finished]).then(
+    () => transition.cancel(),
+    () => transition.cancel(),
+  );
 }
 function rebuild() {
   if (!state.stats) return;
@@ -166,6 +266,7 @@ async function importFiles(files) {
   }
 }
 $('#back-button').addEventListener('click', () => {
+  slideTransition?.cancel();
   releasePhotoUrls(state.urls);
   Object.assign(state, { stats: null, files: [], jsonFile: null, slides: [], demo: false });
   clearDownload();
@@ -203,19 +304,19 @@ for (const [id, direction] of [
 ])
   $(id).addEventListener('click', () => {
     state.previewIndex += direction;
-    renderPreview();
+    renderPreview(direction);
   });
-function move(direction) {
+function move(direction, animate = true) {
   if (state.busy) return;
   state.index = (state.index + direction + state.slides.length) % state.slides.length;
-  renderCurrent();
+  renderCurrent(animate ? direction : 0);
 }
 $('#prev-slide').addEventListener('click', () => move(-1));
 $('#next-slide').addEventListener('click', () => move(1));
 $('#slide-view').addEventListener('keydown', (event) => {
   if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
     event.preventDefault();
-    move(event.key === 'ArrowLeft' ? -1 : 1);
+    move(event.key === 'ArrowLeft' ? -1 : 1, !event.repeat);
   }
 });
 let touchStart = null;
