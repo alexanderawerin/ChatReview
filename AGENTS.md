@@ -1,5 +1,7 @@
 # Product hierarchy
 
+- Leave visual acceptance to the user. Do not launch Playwright, Browser, Computer Use, or other rendered UI checks unless the user explicitly requests them for that task. By default, validate UI changes with code checks, tests, lint and builds, and report visual verification as pending user review.
+
 - Keep chat upload the primary action on the first screen. Tone and photo preferences belong in the dialog opened by upload; the slide preview is secondary.
 - Keep the three export/upload/save steps near the upload action. Place the detailed Telegram JSON export instructions in the first step.
 - Keep the repository private unless the user explicitly requests a visibility change.
@@ -8,6 +10,7 @@
 - Keep landing and upload-dialog typography to 14, 16, and 24px, with only the hero headline exempt. Use weight and spacing rather than extra text sizes.
 - Open mood selection from the primary upload button; do not add a separate settings action to the landing. Default to the first, calm mood.
 - In results, make the slide the primary full-viewport surface. Keep navigation, download and exit controls quiet; do not repeat import preferences or the chat-name header above the slide.
+- Keep the accepted “Сохранить слайд” and “Сохранить всё” actions centered in the result rail, with download and archive icons. Do not add a result-screen mood or style selector; mood remains chosen only in the upload dialog.
 - Mood changes must alter slide composition and visual language, not just copy: calm is factual, friendly uses expressive emoji and playful awards, roast emphasizes punchlines and contrast. Refer to the preserved original ChatWrapped/ChatRoasted sources for character.
 - Photo slides fill the whole slide with centered cover cropping; keep only a small centered author credit at the bottom.
 - Use flat colours for all mood slides and landing previews; do not restore illustrative background artwork. Preserve the friendly pastel palette. Sharp slides use a separate split composition: a large meaning-driven punchline and expressive emoji on the left, factual evidence on the right. Use bold saturated colours, not the calm layout with a darker palette. Use the normal sans-serif for friendly captions, and place award emoji below the central fact.
@@ -35,3 +38,4 @@
 # Slide motion
 
 - Animate slide navigation from both pointer buttons and keyboard activation. Do not infer keyboard input from click event.detail: browser or assistive activation can also report zero. Keep reduced-motion transitions gentle and held-key repeat immediate.
+- The accepted calm-slide motion reveals chart bars from the baseline, reveals table and ranking rows in order, and counts numeric values up to their result. Preserve its reduced-motion and interruption behavior.

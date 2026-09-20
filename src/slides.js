@@ -464,7 +464,7 @@ const friendlyEmoji = {
   conversationEnds: '🌙',
   'vocab-min': '🧸',
   'vocab-max': '✨',
-  maxStreak: '🎙️',
+  maxStreak: '🎤',
   messages: '💬',
   replies: '🗣️',
   reactionsGiven: '🫶',

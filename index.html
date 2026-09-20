@@ -81,7 +81,7 @@
               </div>
               <div>
                 <span class="step-number">04</span>
-                <h2>Сохраните слайды</h2>
+                <h2>Скачайте слайды</h2>
                 <p>PNG, ZIP или просмотр сайта</p>
               </div>
             </section>
@@ -148,14 +148,7 @@
       <section id="results" hidden aria-label="Разбор чата">
         <p id="chat-title" class="sr-only"></p>
         <div class="result-controls">
-          <label
-            >Подача
-            <select id="result-tone">
-              <option value="summary">Спокойно</option>
-              <option value="friendly">Дружески</option>
-              <option value="sharp">Пожёстче</option>
-            </select></label
-          ><label class="result-photo-label"
+          <label class="result-photo-label"
             ><input type="checkbox" id="result-photos" /> С фотографиями</label
           ><button class="text-button" id="add-photos">
             Добавить папку с фото <span data-icon="plus"></span>
@@ -171,9 +164,15 @@
           <button class="text-button" id="back-button">
             <span data-icon="left"></span> Другой чат
           </button>
-          <div class="export-actions">
-            <button class="secondary" id="save-png">Сохранить слайд</button
-            ><button class="primary" id="save-zip">Сохранить всё</button>
+          <div class="viewer-actions">
+            <div class="export-actions">
+              <button class="secondary" id="save-png">
+                <span data-icon="download"></span><span class="button-label">Сохранить слайд</span>
+              </button>
+              <button class="primary" id="save-zip">
+                <span data-icon="archive"></span><span class="button-label">Сохранить всё</span>
+              </button>
+            </div>
           </div>
           <nav class="viewer-nav" aria-label="Навигация по слайдам">
             <button class="icon-button" id="prev-slide" aria-label="Предыдущий слайд">

@@ -334,6 +334,7 @@ test('friendly flow opens with the overview and keeps its card order intentional
   assert.ok(overview.indexOf('class="unit"') < overview.indexOf('friendly-overview-context'));
   assert.ok(!overview.includes('story-footer'));
   const award = renderSlide(slides.find((slide) => slide.id === 'maxStreak'));
+  assert.match(award, /class="mood-emoji"[^>]*>🎤/);
   assert.ok(award.indexOf('mood-emoji') < award.indexOf('big-number'));
   assert.ok(award.indexOf('mood-emoji') < award.indexOf('<h3'));
   assert.ok(award.indexOf('<h3') < award.indexOf('big-number'));

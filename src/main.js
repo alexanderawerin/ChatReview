@@ -5,6 +5,8 @@ import mascotUrl from '../assets/roast-cat.png';
 import arrow from '@phosphor-icons/core/assets/regular/arrow-right.svg?raw';
 import left from '@phosphor-icons/core/assets/regular/arrow-left.svg?raw';
 import upload from '@phosphor-icons/core/assets/regular/upload-simple.svg?raw';
+import download from '@phosphor-icons/core/assets/regular/download-simple.svg?raw';
+import archive from '@phosphor-icons/core/assets/regular/file-zip.svg?raw';
 import plus from '@phosphor-icons/core/assets/regular/plus.svg?raw';
 import close from '@phosphor-icons/core/assets/regular/x.svg?raw';
 import { analyzeChat } from './analyzer.js';
@@ -16,9 +18,20 @@ const $ = (selector) => document.querySelector(selector);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let slideTransition;
 let previewAnimations = [];
+let slideAnimations = [];
+let counterAnimations = [];
 function cancelPreviewAnimations() {
   for (const animation of previewAnimations) animation.cancel();
   previewAnimations = [];
+}
+function cancelSlideAnimations() {
+  for (const animation of slideAnimations) animation.cancel();
+  slideAnimations = [];
+  for (const counter of counterAnimations) {
+    cancelAnimationFrame(counter.frame);
+    counter.element.textContent = counter.finalText;
+  }
+  counterAnimations = [];
 }
 // Input modality also covers native dialog Escape and keyboard button activation.
 document.addEventListener(
@@ -28,6 +41,7 @@ document.addEventListener(
     const slideNavigation = ['ArrowLeft', 'ArrowRight', 'Enter', ' '].includes(event.key);
     if (!slideNavigation) {
       cancelPreviewAnimations();
+      cancelSlideAnimations();
       slideTransition?.cancel();
     }
   },
@@ -43,12 +57,15 @@ document.addEventListener(
 reducedMotion.addEventListener('change', () => {
   slideTransition?.cancel();
   cancelPreviewAnimations();
+  cancelSlideAnimations();
 });
 const icons = {
   arrow,
   left,
   right: arrow,
   upload,
+  download,
+  archive,
   plus,
   close,
   help,
@@ -93,7 +110,6 @@ function options() {
 }
 function syncControls() {
   $(`input[name="tone"][value="${state.tone}"]`).checked = true;
-  $('#result-tone').value = state.tone;
   $('#photos-toggle').checked = $('#result-photos').checked = state.photos;
   $('#file-choice-label').textContent = state.photos ? 'Выбрать папку с фото' : 'Выбрать файл';
 }
@@ -102,6 +118,45 @@ const heroScenes = [
   { name: 'friendly', label: 'Дружески', emojis: ['😶', '🤩'] },
   { name: 'sharp', label: 'Пожёстче', emojis: ['🙄', '😈'] },
 ];
+function animatePreviewEmoji(element, emoji, index) {
+  const easing = getComputedStyle(document.documentElement).getPropertyValue('--ease-out').trim();
+  if (reducedMotion.matches) {
+    element.textContent = emoji;
+    const fade = element.animate([{ opacity: 0.5 }, { opacity: 1 }], {
+      duration: 100,
+      easing,
+    });
+    previewAnimations.push(fade);
+    return;
+  }
+
+  const exit = element.animate(
+    [
+      { opacity: 1, transform: 'none' },
+      { opacity: 0, transform: 'translateY(-35%) scale(0.95)' },
+    ],
+    {
+      duration: 100,
+      delay: index * 40,
+      easing,
+    },
+  );
+  previewAnimations.push(exit);
+  exit.finished
+    .then(() => {
+      element.textContent = emoji;
+      exit.cancel();
+      const enter = element.animate(
+        [
+          { opacity: 0, transform: 'translateY(35%) scale(0.9)' },
+          { opacity: 1, transform: 'none' },
+        ],
+        { duration: 180, easing },
+      );
+      previewAnimations.push(enter);
+    })
+    .catch(() => {});
+}
 function renderPreview(direction = 0) {
   const interrupted = previewAnimations.some((animation) => animation.playState === 'running');
   cancelPreviewAnimations();
@@ -109,32 +164,113 @@ function renderPreview(direction = 0) {
   const scene = heroScenes[state.previewIndex];
   $('.hero').dataset.scene = scene.name;
   document.querySelectorAll('.headline-emoji').forEach((element, index) => {
-    element.textContent = scene.emojis[index];
     if (direction && !interrupted && element.animate) {
-      previewAnimations.push(
-        element.animate(
-          [
-            {
-              opacity: 0,
-              transform: reducedMotion.matches ? 'none' : `translateX(${direction * 15}%)`,
-            },
-            { opacity: 1, transform: 'none' },
-          ],
-          {
-            duration: reducedMotion.matches ? 100 : 200,
-            easing: getComputedStyle(document.documentElement)
-              .getPropertyValue('--ease-out')
-              .trim(),
-          },
-        ),
-      );
+      animatePreviewEmoji(element, scene.emojis[index], index);
+    } else {
+      element.textContent = scene.emojis[index];
     }
   });
   $('#preview-count .preview-position').textContent =
     `${state.previewIndex + 1} / ${heroScenes.length}`;
   $('#preview-count .preview-scene').textContent = ` · ${scene.label}`;
 }
-function renderCurrent(direction = 0) {
+function animateCounter(element, delay) {
+  const finalText = element.textContent;
+  const value = Number(finalText.replace(/\D/g, ''));
+  if (!Number.isFinite(value)) return;
+  const formatter = new Intl.NumberFormat('ru-RU');
+  const counter = { element, finalText, frame: 0 };
+  const start = performance.now() + delay;
+  element.textContent = formatter.format(0);
+  const tick = (now) => {
+    if (now < start) {
+      counter.frame = requestAnimationFrame(tick);
+      return;
+    }
+    const progress = Math.min((now - start) / 280, 1);
+    element.textContent = formatter.format(Math.round(value * progress));
+    if (progress < 1) counter.frame = requestAnimationFrame(tick);
+    else {
+      element.textContent = finalText;
+      counterAnimations = counterAnimations.filter((item) => item !== counter);
+    }
+  };
+  counter.frame = requestAnimationFrame(tick);
+  counterAnimations.push(counter);
+}
+function animateSlideContent(view, enabled) {
+  cancelSlideAnimations();
+  if (!enabled) return;
+  const story = view.querySelector('.story');
+  if (!story?.matches('.tone-summary, .tone-friendly, .tone-sharp')) return;
+  const calm = story.matches('.tone-summary');
+  const sharp = story.matches('.tone-sharp');
+  const easing = getComputedStyle(document.documentElement).getPropertyValue('--ease-out').trim();
+  const bars = story.querySelectorAll('.bar-column i');
+  bars.forEach((bar, index) => {
+    const animation = reducedMotion.matches
+      ? bar.animate([{ opacity: 0.5 }, { opacity: 1 }], { duration: 100, easing })
+      : bar.animate(
+          [
+            { opacity: 0.4, clipPath: 'inset(100% 0 0)' },
+            { opacity: 1, clipPath: 'inset(0 0 0)' },
+          ],
+          {
+            duration: 250,
+            delay: index * 30,
+            easing,
+            fill: 'backwards',
+          },
+        );
+    slideAnimations.push(animation);
+  });
+  const rows = calm
+    ? [...story.querySelectorAll('.fact-table-labels, .slide-ranking > li')]
+    : sharp
+      ? [...story.querySelectorAll('.runners > li, .slide-ranking > li')]
+      : [];
+  rows.forEach((row, index) => {
+    const animation = reducedMotion.matches
+      ? row.animate([{ opacity: 0.5 }, { opacity: 1 }], { duration: 100, easing })
+      : row.animate(
+          [
+            {
+              opacity: 0,
+              transform: sharp ? 'translateX(8%)' : 'translateY(20%)',
+            },
+            { opacity: 1, transform: 'none' },
+          ],
+          {
+            duration: 220,
+            delay: index * 40,
+            easing,
+            fill: 'backwards',
+          },
+        );
+    slideAnimations.push(animation);
+  });
+  const numbers = story.querySelectorAll(
+    calm
+      ? '.overview-metric .big-number, .slide-ranking > li > strong'
+      : sharp
+        ? '.story-content .big-number'
+        : '.friendly-award-body .big-number',
+  );
+  if (reducedMotion.matches) {
+    numbers.forEach((number) => {
+      slideAnimations.push(
+        number.animate([{ opacity: 0.5 }, { opacity: 1 }], { duration: 100, easing }),
+      );
+    });
+    return;
+  }
+  numbers.forEach((number) => {
+    const row = number.closest('li');
+    const index = row ? rows.indexOf(row) : 0;
+    animateCounter(number, Math.max(0, index) * 40);
+  });
+}
+function renderCurrent(direction = 0, animateContent = true) {
   const view = $('#slide-view');
   // Repeated input settles immediately on the requested slide, never queues decks.
   const interrupted = Boolean(slideTransition);
@@ -149,6 +285,7 @@ function renderCurrent(direction = 0) {
   });
   $('#slide-count').value = `${state.index + 1} / ${state.slides.length}`;
   const incoming = view.firstElementChild;
+  animateSlideContent(view, animateContent);
   if (!direction || interrupted || !outgoing || !incoming.animate) return;
 
   const gentle = reducedMotion.matches;
@@ -283,12 +420,6 @@ for (const radio of document.querySelectorAll('input[name="tone"]'))
     syncControls();
     renderPreview();
   });
-$('#result-tone').addEventListener('change', (event) => {
-  state.tone = event.target.value;
-  syncControls();
-  rebuild();
-  renderPreview();
-});
 $('#photos-toggle').addEventListener('change', (event) => changePhotos(event.target.checked));
 $('#result-photos').addEventListener('change', (event) => changePhotos(event.target.checked));
 $('#upload-button').addEventListener('click', () => $('#settings-dialog').showModal());
@@ -309,7 +440,7 @@ for (const [id, direction] of [
 function move(direction, animate = true) {
   if (state.busy) return;
   state.index = (state.index + direction + state.slides.length) % state.slides.length;
-  renderCurrent(animate ? direction : 0);
+  renderCurrent(animate ? direction : 0, animate);
 }
 $('#prev-slide').addEventListener('click', () => move(-1));
 $('#next-slide').addEventListener('click', () => move(1));
